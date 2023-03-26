@@ -1,7 +1,8 @@
 import express from "express";
-import User from '../models/User';
-import bcrypt from "bcrypt";
+import { register } from "../controllers/auth.js";
 
 const router = express.Router();
 
+router.post("/register", register);
 
+export default router;

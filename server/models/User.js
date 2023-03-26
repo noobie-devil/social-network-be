@@ -36,14 +36,18 @@ const UserSchema = new Schema(
                     type: Schema.Types.ObjectId,
                     ref: 'FriendRequest',
                     required: true
-                }
+                },
+                default: []
             }
         ],
         status: {
             type: String,
             default: "active"
         },
-        viewProfile: Number,
+        viewProfile: {
+            type: Number,
+            default: 0
+        },
     },
     {
         timestamps: true
@@ -52,6 +56,8 @@ const UserSchema = new Schema(
 
 const User = mongoose.model("User", UserSchema);
 UserSchema.index({'email': 1}, { sparse: true, unique: true});
+
+export default User;
 
 
 
