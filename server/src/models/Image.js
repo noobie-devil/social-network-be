@@ -1,4 +1,5 @@
-import {Schema} from "mongoose";
+import mongoose, {Schema} from "mongoose";
+import {longTimestampsPlugin} from "../database/plugins.js";
 
 const ImageSchema = new Schema(
     {
@@ -11,6 +12,8 @@ const ImageSchema = new Schema(
         timestamps: true
     }
 );
+
+ImageSchema.plugin(longTimestampsPlugin);
 const Image = mongoose.model("Image", ImageSchema);
 
 module.exports = {

@@ -4,15 +4,22 @@ import {findByUserId} from "../services/keyToken.service.js";
 import {asyncHandler} from "../core/utils/core.utils.js";
 
 export const createTokenPair = async (payload, publicKey, privateKey) => {
-    const accessToken = await jwt.sign(payload, publicKey, {
-        expiresIn: "2 days"
-    })
-    const refreshToken = await jwt.sign(payload, privateKey, {
-        expiresIn: "7 days"
-    })
+    const accessToken = await generateAccessToken(payload, publicKey)
+    const refreshToken = await generateRefreshToken(payload, privateKey)
 
     return {accessToken, refreshToken}
+}
 
+export const generateRefreshToken = async(payload, privateKey) => {
+    return await jwt.sign(payload, privateKey, {
+        expiresIn: "7d"
+    })
+}
+
+export const generateAccessToken = async(payload, publicKey) => {
+    return await jwt.sign(payload, publicKey, {
+        expiresIn: "2d"
+    })
 }
 
 const authentication = asyncHandler(async (req, res, next) => {
@@ -34,3 +41,7 @@ const authentication = asyncHandler(async (req, res, next) => {
         throw error
     }
 })
+
+export const verifyJwt = async(token, keySecret) => {
+    return await jwt.verify(token, keySecret)
+}

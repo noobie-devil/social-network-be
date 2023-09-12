@@ -1,4 +1,4 @@
-import {BaseError} from "./BaseError.js";
+import {BaseError} from "./base.error.js";
 
 export class ForbiddenError extends BaseError {
     constructor(message) {

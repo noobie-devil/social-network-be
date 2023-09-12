@@ -1,4 +1,5 @@
 import mongoose, {Schema} from "mongoose";
+import {longTimestampsPlugin} from "../database/plugins.js";
 
 const CommentSchema = new Schema({
     text: {
@@ -23,7 +24,7 @@ const CommentSchema = new Schema({
     },
     post: {
         type: Schema.Types.ObjectId,
-        ref: 'Post.js',
+        ref: 'Post',
         required: true
     }
 },
@@ -31,6 +32,7 @@ const CommentSchema = new Schema({
         timestamps: true
     }
 );
+CommentSchema.plugin(longTimestampsPlugin);
 CommentSchema.index({ user: 1, parent: 1, post: 1, createdAt: -1});
 const Comment = mongoose.model('Comment', CommentSchema);
 

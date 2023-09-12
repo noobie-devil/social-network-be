@@ -1,26 +1,30 @@
-import {ValidationError} from "../errors/ValidationError.js";
-import {NotFoundError} from "../errors/NotFoundError.js";
-import {InvalidTokenError} from "../errors/InvalidTokenError.js";
-import {InternalServerError} from "../errors/InternalServerError.js";
-import {BaseError} from "../errors/BaseError.js";
+import {NotFoundError} from "../core/errors/notFound.error.js";
+import {InternalServerError} from "../core/errors/internalServer.error.js";
+import {BaseError} from "../core/errors/base.error.js";
+import {ValidationError} from "../core/errors/validation.error.js";
+import Joi from "joi";
 
-const errorMap = {
-    ValidationError,
-    NotFoundError,
-    InvalidTokenError,
-    InternalServerError
+
+export const notFound = (req, res, next) => {
+    const error = new NotFoundError();
+    next(error);
 }
 
-const notFound = (req, res, next) => {
-    next(NotFoundError());
-}
+export const errorHandler = (err, req, res, next) => {
+    console.log("Error caught in errorHandler:", err.stack);
 
-const errorHandler = (err, req, res) => {
+    if(err instanceof Joi.ValidationError) {
+        err = new ValidationError({
+            error: err
+        })
+    }
     if(!(err instanceof BaseError)) {
         err = new InternalServerError();
     }
-    return res.status(err.statusCode).json({ error: err.errorMessage });
+    if(err.errorMessage) {
+        return res.status(err.statusCode).json({ error: err.errorMessage });
+    } else {
+        return res.status(err.statusCode);
+
+    }
 }
-
-
-export default errorHandler;

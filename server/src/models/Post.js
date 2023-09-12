@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import {longTimestampsPlugin} from "../database/plugins.js";
 
 const PostSchema = new Schema(
     {
@@ -9,8 +10,7 @@ const PostSchema = new Schema(
         },
         group: {
             type: Schema.Types.ObjectId,
-            ref: 'Post',
-            default: []
+            ref: 'Group',
         },
         content: {
             type: String,
@@ -25,12 +25,17 @@ const PostSchema = new Schema(
         ],
         likeCounts: {
             type: Number,
+        },
+        refPost: {
+            type: Schema.Types.ObjectId,
+            ref: 'Post'
         }
     },
     {
         timestamps: true
     }
 );
+PostSchema.plugin(longTimestampsPlugin);
 PostSchema.index({ user: 1, group: 1, createdAt: -1}, {
     sparse: true,
     unique: true

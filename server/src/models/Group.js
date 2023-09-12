@@ -1,4 +1,5 @@
 import {Schema} from "mongoose";
+import {longTimestampsPlugin} from "../database/plugins.js";
 
 const GroupSchema = new Schema(
     {
@@ -24,6 +25,7 @@ const GroupSchema = new Schema(
         }
     }
 );
+
 GroupSchema.index({ name: 1});
 const Group = mongoose.model('Group', GroupSchema);
 

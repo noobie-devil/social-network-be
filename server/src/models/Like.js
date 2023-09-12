@@ -1,4 +1,5 @@
-import {Schema} from "mongoose";
+import mongoose, {Schema} from "mongoose";
+import {longTimestampsPlugin} from "../database/plugins.js";
 
 const LikeSchema = new Schema(
     {
@@ -9,7 +10,7 @@ const LikeSchema = new Schema(
         },
         post: {
             type: Schema.Types.ObjectId,
-            ref: 'Post.js',
+            ref: 'Post',
             required: true
         },
 
@@ -18,6 +19,8 @@ const LikeSchema = new Schema(
         timestamps: true
     }
 );
+
+LikeSchema.plugin(longTimestampsPlugin);
 LikeSchema.index({user: 1, post: 1, createdAt: -1}, {
     sparse: true,
     unique: true
