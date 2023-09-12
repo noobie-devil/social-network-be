@@ -1,14 +1,13 @@
 import {BaseError} from "./BaseError.js";
 
-export class NotFoundError extends BaseError {
+export class InvalidCredentialsError extends BaseError {
 
     constructor(message) {
         super({message});
-        this._statusCode = 404;
+        this._statusCode = 401;
     }
 
     _errorMessage() {
-        return "Resource not found";
+        return "Invalid credentials";
     }
-
 }

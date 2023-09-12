@@ -1,16 +1,13 @@
 import {BaseError} from "./BaseError.js";
 
-export class InvalidTokenError extends BaseError {
-
-
+export class ForbiddenError extends BaseError {
     constructor(message) {
         super({message});
         this._statusCode = 401;
+        this._message = message;
     }
 
     _errorMessage() {
-        return "Invalid token";
+        return this._message;
     }
-
-
 }

@@ -13,6 +13,10 @@ export class BaseError extends Error {
         throw new Error("Method not implemented.");
     }
 
+    get name() {
+        return this._name;
+    }
+
     get errorMessage() {
         return this._errorMessage() || this._message;
     }

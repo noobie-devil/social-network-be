@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import bcrypt from "bcrypt";
 
 const UserSchema = new Schema(
     {
@@ -55,6 +56,11 @@ const UserSchema = new Schema(
 );
 
 const User = mongoose.model("User", UserSchema);
+UserSchema.pre('save', async (next) => {
+    if(!this.isModified('password')) return next();
+
+    const salt = await bcrypt.genSalt()
+})
 UserSchema.index({'email': 1}, { sparse: true, unique: true});
 
 export default User;

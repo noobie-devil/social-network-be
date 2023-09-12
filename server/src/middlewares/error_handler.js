@@ -11,10 +11,11 @@ const errorMap = {
     InternalServerError
 }
 
+const notFound = (req, res, next) => {
+    next(NotFoundError());
+}
 
-function errorHandler(err, req, res) {
-    // const mappedError = mapError(err);
-    // console.log(mappedError);
+const errorHandler = (err, req, res) => {
     if(!(err instanceof BaseError)) {
         err = new InternalServerError();
     }
