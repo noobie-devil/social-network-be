@@ -2,7 +2,7 @@
 //  * @swagger
 //  * /register:
 //  *   post:
-//  *     summary: Register a new user
+//  *     summary: Register a new friend
 //  *     tags:
 //  *       - User
 //  *     requestBody:
@@ -13,7 +13,7 @@
 //  *             $ref: '#/components/schemas/UserRegister'
 //  *     responses:
 //  *       201:
-//  *         description: The newly registered user
+//  *         description: The newly registered friend
 //  *         content:
 //  *           application/json:
 //  *             schema:
@@ -103,11 +103,11 @@
  * @swagger
  * /api/v1/register:
  *   post:
- *     summary: Register a new user
+ *     summary: Register a new friend
  *     tags: [RegisterSchema]
  *     responses:
  *       201:
- *         description: The newly registered user
+ *         description: The newly registered friend
  *         content:
  *           application/json:
  *             schema:

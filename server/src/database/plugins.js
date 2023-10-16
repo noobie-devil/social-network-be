@@ -15,6 +15,17 @@ export const longTimestampsPlugin = function(schema, options) {
 
 }
 
+export const removeVersionFieldPlugin = function(schema, options) {
+    schema.pre('find', function (next) {
+        this.select('-__v')
+        next()
+    })
+    schema.pre('findOne', function (next) {
+        this.select('-__v')
+        next()
+    })
+}
+
 function dateToNumber(date) {
     return new Date(date).getTime();
 }

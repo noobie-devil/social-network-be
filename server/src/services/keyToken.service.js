@@ -13,7 +13,7 @@ export const createKeyToken = async ({userId, publicKey, privateKey, refreshToke
 }
 
 export const findByUserId = async(userId) => {
-    return await KeyToken.findOne({ user: new mongoose.Types.ObjectId(userId) }).lean().exec()
+    return await KeyToken.findOne({ user: new mongoose.Types.ObjectId(userId) }).populate("user").lean().exec()
 }
 
 export const removeKeyById = async(id) => {

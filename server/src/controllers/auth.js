@@ -1,17 +1,13 @@
 import User from "../models/User.js";
 import { ValidationError } from "../core/errors/validation.error.js";
-import registerSchema from "../schema_validate/register_schema.js";
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
-import {loginSchema} from "../schema_validate/login_schema.js";
-import {authenticateAccessToken, authenticateRefreshToken, generateTokens} from '../services/auth-service.js';
-import {BaseError} from "../core/errors/base.error.js";
+import {authenticateRefreshToken, generateTokens} from '../services/auth-service.js';
 import Joi from "joi";
-import {refreshTokenSchema} from "../schema_validate/refresh_token_schema.js";
 import * as crypto from "crypto";
 import {createKeyToken} from "../services/keyToken.service.js";
 import {InternalServerError} from "../core/errors/internalServer.error.js";
 import {createTokenPair} from "../utils/auth.utils.js";
-
+import {loginSchema, registerSchema, refreshTokenSchema} from "../schemaValidate/auth/auth.schema.js";
 
 export const register = async (req, res, next) => {
     try {
@@ -117,8 +113,8 @@ export const login = async (req, res, next) => {
             throw new InvalidCredentialsError();
         }
 
-        // const accessToken = generateAccessToken(user.id);
-        // const refreshToken = await generateRefreshToken(user.id);
+        // const accessToken = generateAccessToken(friend.id);
+        // const refreshToken = await generateRefreshToken(friend.id);
         const { accessToken, refreshToken } = await generateTokens(user.id);
         res.status(200).json({
             accessToken: accessToken,

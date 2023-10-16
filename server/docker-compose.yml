@@ -1,0 +1,112 @@
+version: "3"
+
+services:
+  mongo_node1:
+    container_name: mongo_node1
+    image: mongo:latest
+    restart: always
+    expose:
+      - 27017
+    ports:
+      - 27018:27017
+    volumes:
+      - D:\mongo\db\data:/data/db
+    networks:
+      - mongo_cluster_network
+    command: mongod --bind_ip_all --replSet mongo-set
+  mongo_node2:
+    container_name: mongo_node2
+    image: mongo:latest
+    restart: always
+    expose:
+      - 27017
+    ports:
+      - 27019:27017
+    volumes:
+      - D:\mongo\db\mongo_replSet_2\data:/data/db
+    networks:
+      - mongo_cluster_network
+    command: mongod --bind_ip_all --replSet mongo-set
+  mongo_node3:
+    container_name: mongo_node3
+    image: mongo:latest
+    restart: always
+    expose:
+      - 27017
+    ports:
+      - 27020:27017
+    volumes:
+      - D:\mongo\db\mongo_replSet_3\data:/data/db
+    networks:
+      - mongo_cluster_network
+    command: mongod --bind_ip_all --replSet mongo-set
+  mongo-replSetInit:
+    image: mongo:latest
+    restart: "no"
+    depends_on:
+      - mongo_node1
+      - mongo_node2
+      - mongo_node3
+    command: >
+      mongosh --host 192.168.1.34:27018 --eval
+      '
+      config = {
+        "_id": "mongo-set",
+        "members": [
+          {
+            "_id": 0,
+            "host": "192.168.1.34:27018",
+            "priority": 3 
+          },
+          {
+            "_id": 1,
+            "host": "192.168.1.34:27019",
+            "priority": 2
+          },
+          {
+            "_id": 2,
+            "host": "192.168.1.34:27020",
+            "priority": 1
+          },
+        ]
+      };
+      rs.initiate(config);
+      rs.status();
+      '
+networks:
+  mongo_cluster_network:
+    driver: bridge
+
+
+
+
+
+
+#  mongo_db:
+#    container_name: db_container
+#    image: mongo:latest
+#    restart: always
+#    ports:
+#      - 27018:27017
+#    volumes:
+#      - D:\mongo\db\data:/data/db
+
+
+
+
+
+#  # Node API Service
+#  api:
+#    build: .
+#    ports:
+#      - 3001:3000
+#    volumes:
+#      - .:/usr/social-network-be/server
+#    environment:
+#      PORT: 3000
+#      MONGO_URL: 'mongodb://mongo_db:27017/SocialAppDb?authMechanism=DEFAULT'
+#      SERVER_MORGAN_STYLE: 'dev'
+#      BCRYPT_SALT: 10
+#    depends_on:
+#      - mongo_db
+

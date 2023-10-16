@@ -21,7 +21,7 @@ passport.use(new JwtStrategy({
         console.log("asd: " + payload);
         const user = await User.findById(payload.sub);
         if (!user) {
-            return done(null, false, {message: 'Not found user.'});
+            return done(null, false, {message: 'Not found friend.'});
         }
         done(null, user);
     } catch (error) {

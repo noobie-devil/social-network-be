@@ -1,4 +1,5 @@
 import {SuccessReasonStatusCode, SuccessStatusCode} from "../utils/constants.js";
+import {cleanData} from "../../utils/lodash.utils.js";
 
 export class SuccessResponse {
     constructor({message = SuccessReasonStatusCode.OK, statusCode = SuccessStatusCode.OK, data = {}}) {
@@ -9,7 +10,7 @@ export class SuccessResponse {
 
 
     send(res, headers= {}) {
-        return res.status(this.status).json(this)
+        return res.status(this.status).json(cleanData(this))
     }
 }
 

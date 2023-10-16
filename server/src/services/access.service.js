@@ -11,14 +11,13 @@ import {
     removeKeyById,
     removeKeyByUserId
 } from "./keyToken.service.js";
-import registerSchema from "../schema_validate/register_schema.js";
 import {InternalServerError} from "../core/errors/internalServer.error.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import {ForbiddenError} from "../core/errors/forbidden.error.js";
 import {InvalidTokenError} from "../core/errors/invalidToken.error.js";
 import jwt from "jsonwebtoken";
 import KeyToken from "../models/keyToken.model.js";
-import {refreshTokenSchema} from "../schema_validate/refresh_token_schema.js";
+import {registerSchema, refreshTokenSchema} from "../schemaValidate/auth/auth.schema.js";
 
 
 export const logoutHandler = async({keystore}) => {
@@ -73,42 +72,7 @@ export const refreshTokenHandler = async(req) => {
     })
 
     return tokens
-    // jwt.verify(refreshToken, holderToken.privateKey, async (err, decoded) => {
-    //     if (decoded.userId !== holderToken.user._id.toString()) {
-    //         console.log(decoded.userId)
-    //         console.log(holderToken.user._id)
-    //         throw new InvalidTokenError()
-    //     }
-    //     if (err) {
-    //         if (err instanceof jwt.TokenExpiredError) {
-    //             await removeKeyByUserId(holderToken.user._id)
-    //             throw new ForbiddenError()
-    //         } else if (err instanceof jwt.JsonWebTokenError) {
-    //             throw new InvalidTokenError("Invalid refresh token")
-    //         } else {
-    //             throw err
-    //         }
-    //     }
-    //     const tokens = createTokenPair({
-    //         user_id: holderToken.user._id,
-    //         email: holderToken.user.email
-    //     }, holderToken.publicKey, holderToken.privateKey)
-    //
-    //     await KeyToken.updateOne({
-    //         refreshToken
-    //     }, {
-    //         $set: {
-    //             refreshToken: tokens.refreshToken
-    //         },
-    //         $addToSet: {
-    //             refreshTokenUsed: refreshToken
-    //         }
-    //     })
-    //
-    //     return {
-    //         tokens
-    //     }
-    // })
+
 }
 
 export const loginHandler = async({ email, password, refreshToken = null}) => {

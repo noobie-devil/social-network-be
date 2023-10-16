@@ -1,11 +1,11 @@
 import express from "express";
-import { getUserById } from "../controllers/user.js";
-import {authenticateAccessToken} from "../services/auth-service.js";
+import {createUser, getUserById, updateUserById} from "../controllers/user.controller.js";
+import {asyncHandler} from "../core/utils/core.utils.js";
+import {authentication} from "../middlewares/auth.middleware.js";
 
 const userRouter = express.Router();
 
-userRouter.get("/:id", authenticateAccessToken, getUserById);
-userRouter.get('/cc', (req, res) => {
-    res.json({message: "nhu loz"});
-})
+userRouter.get("/:id", authentication, getUserById);
+userRouter.post("/", asyncHandler(createUser))
+userRouter.put("/:id", authentication, asyncHandler(updateUserById))
 export default userRouter;

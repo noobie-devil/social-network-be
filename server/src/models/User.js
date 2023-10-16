@@ -1,7 +1,8 @@
 import mongoose, {Schema} from "mongoose";
 import bcrypt from "bcrypt";
 import config from "../utils/global_config.js";
-import {longTimestampsPlugin} from "../database/plugins.js";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
+import {getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
 
 const UserSchema = new Schema(
     {
@@ -38,19 +39,19 @@ const UserSchema = new Schema(
             type: String,
             default: "",
         },
-        friends: [
-            {
-                relation: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'FriendRequest',
-                    required: true
-                },
-                default: []
-            }
-        ],
         status: {
             type: String,
             default: "active"
+        },
+        friends: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ],
+        friendCount: {
+            type: Number,
+            default: 0
         },
         viewProfile: {
             type: Number,
@@ -63,6 +64,30 @@ const UserSchema = new Schema(
 );
 
 UserSchema.plugin(longTimestampsPlugin);
+UserSchema.plugin(removeVersionFieldPlugin);
+
+UserSchema.methods.toPublicData = function(timestamps = false) {
+    const obj = this.toObject()
+    delete obj.password
+    if(!timestamps) {
+        delete obj.updatedAt
+        delete obj.createdAt
+    }
+    return obj
+}
+
+export const unSelectUserFieldToPublic = ({timestamps = false, extend = []}) => {
+    let unSelect = ["password", "viewProfile"]
+    if(!timestamps) {
+        unSelect = [...unSelect, "updatedAt", "createdAt"]
+    }
+    if(extend && extend.length !== 0) {
+        unSelect = [...unSelect, ...extend]
+    }
+    console.log(unSelect)
+    return getUnSelectObjFromSelectArr(unSelect)
+}
+
 UserSchema.pre('save', async function (next) {
     if(!this.isNew && !this.isModified('password')) return next();
 

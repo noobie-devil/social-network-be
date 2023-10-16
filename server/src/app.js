@@ -69,5 +69,5 @@ app
     // .use('/api-doc', swaggerUi.serve, swaggerUi.setup(specs))
     .use(notFound)
     .use(errorHandler);
-checkOverload()
+// checkOverload()
 export default app;
