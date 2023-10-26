@@ -1,7 +1,6 @@
-import * as userRepository from "../models/repositories/user.repo.js";
-import {validateMongodbId} from "../utils/validateMongodbId.js";
-import User from "../models/User.js";
-import {UserModel, CollegeStudent,Lecturer, Candidate} from "../models/user.model.js"
+import * as userRepository from "../repositories/user.repo.js";
+import {validateMongodbId} from "../utils/global.utils.js";
+import {User, CollegeStudent,Lecturer, Candidate} from "../models/user.model.js"
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
 import {createUserSchema, respondFriendRequestSchema, updateUserSchema} from "../schemaValidate/user/user.schema.js";
@@ -11,7 +10,8 @@ import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 
 export const findByEmail = async ({email}) => {
-    return await userRepository.findUserByEmail({email});
+    return await userRepository.findByEmail({email})
+    // return await userRepository.findUserByEmail({email});
 }
 
 export const findByUserId = async (userId) => {
@@ -65,7 +65,7 @@ export const updateUserById = async(req) => {
     await updateUserSchema.validateAsync(req.body)
     const username = req.body.username
     if(!username && !username.trim().isEmpty()) {
-        const existUserName = UserModel.findOne({
+        const existUserName = User.findOne({
             _id: { $ne: id},
             username
         })
@@ -86,12 +86,13 @@ export const createUser = async (req) => {
     if (!userClass) {
         throw new BadRequestError(`Invalid User Type ${req.body.type}`)
     }
+    const {email} = req.body
+    const emailExists = await User.findOne({email}).lean()
+    if(emailExists) throw new ValidationError({
+        message: 'This email is already been registered',
+        statusCode: 409
+    })
     return new userClass(req.body).create()
-}
-
-export const findUser = async(req) => {
-    validateMongodbId(req.params.id)
-
 }
 
 class UserDTO {
@@ -99,6 +100,7 @@ class UserDTO {
                     identityCode,
                     firstName,
                     lastName,
+                    username,
                     email,
                     password,
                     homeTown,
@@ -109,6 +111,7 @@ class UserDTO {
         this.identityCode = identityCode
         this.firstName = firstName
         this.lastName = lastName
+        this.username = username || ""
         this.email = email
         this.password = password
         this.homeTown = homeTown
@@ -118,17 +121,26 @@ class UserDTO {
     }
 
     async create(userId, session) {
-        return await UserModel.create([{
-            ...this,
-            _id: userId
-        }], {session: session})
+        return await userRepository.create(
+            User,
+            {
+                ...this,
+                _id: userId
+            },
+            session
+        )
+        // const userCreated = await UserModel.create([{
+        //     ...this,
+        //     _id: userId
+        // }], {session: session})
+        // return userCreated[0].toPublicData()
     }
 
     async update(userId, payload, session) {
         return await userRepository.updateUserById({
             id: userId,
             payload,
-            model: UserModel,
+            model: User,
             session
         })
     }
@@ -139,7 +151,12 @@ class CollegeStudentDTO extends UserDTO {
         const session = await mongoose.startSession()
         session.startTransaction()
         try {
-            const newCollegeStudent = await CollegeStudent.create([this.details], {session})
+            // const newCollegeStudent = await CollegeStudent.create([this.details], {session})
+            const newCollegeStudent = await userRepository.create(
+                CollegeStudent,
+                this.details,
+                session
+            )
             const userCreated = await super.create(newCollegeStudent._id, session)
             await session.commitTransaction()
             return userCreated
@@ -182,7 +199,12 @@ class LecturerDTO extends UserDTO {
         const session = await mongoose.startSession()
         session.startTransaction()
         try {
-            const newLecturer = await Lecturer.create([this.details], {session})
+            // const newLecturer = await Lecturer.create([this.details], {session})
+            const newLecturer = await userRepository.create(
+                Lecturer,
+                [this.details],
+                session
+            )
             const userCreated = await super.create(newLecturer._id, session)
             await session.commitTransaction()
             return userCreated
@@ -201,7 +223,12 @@ class CandidateDTO extends UserDTO {
         const session = await mongoose.startSession()
         session.startTransaction()
         try {
-            const newCandidate = await Candidate.create([this.details], {session})
+            // const newCandidate = await Candidate.create([this.details], {session})
+            const newCandidate = await userRepository.create(
+                Candidate,
+                this.details,
+                session
+            )
             const userCreated = await super.create(newCandidate._id, session)
             await session.commitTransaction()
             return userCreated

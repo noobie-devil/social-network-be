@@ -1,10 +1,10 @@
 import express from "express";
 import userRouter from "./user.js";
-import authRouter from "./auth/index.js";
-import friendRouter from "./friend/index.js";
-import facultyRouter from "./faculty/index.js";
-import majorRouter from "./major/index.js";
-import enrollmentYearRouter from "./enrollmentYear/index.js";
+import authRouter from "./auth.routes.js";
+import friendRouter from "./friend.routes.js";
+import facultyRouter from "./faculty.routes.js";
+import majorRouter from "./major.routes.js";
+import enrollmentYearRouter from "./enrollmenYear.routes.js";
 
 const router = express.Router();
 

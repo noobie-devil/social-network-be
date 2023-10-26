@@ -1,12 +1,12 @@
 import express from "express";
-import {asyncHandler} from "../../core/utils/core.utils.js";
+import {asyncHandler} from "../core/utils/core.utils.js";
 import {
     getFriendRequests,
     getFriendsList,
     respondToFriendRequest,
     sendFriendRequest
-} from "../../controllers/user.controller.js";
-import {authentication} from "../../middlewares/auth.middleware.js";
+} from "../controllers/user.controller.js";
+import {authentication} from "../middlewares/auth.middleware.js";
 
 const friendRouter = express.Router()
 

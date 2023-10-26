@@ -1,5 +1,5 @@
 import Joi from 'joi'
-import {isValidMongoId} from "../../utils/validateMongodbId.js";
+import {isValidMongoId} from "../../utils/global.utils.js";
 import moment from "moment";
 
 const respondFriendRequestSchema = Joi.object({

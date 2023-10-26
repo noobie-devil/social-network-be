@@ -1,6 +1,6 @@
 import {createMajorSchema, updateMajorSchema} from "../schemaValidate/major/major.schema.js";
-import * as majorRepository from '../models/repositories/major.repo.js';
-import {validateMongodbId} from "../utils/validateMongodbId.js";
+import * as majorRepository from '../repositories/major.repo.js';
+import {validateMongodbId} from "../utils/global.utils.js";
 
 export const createMajor = async(req) => {
     await createMajorSchema.validateAsync(req.body)

@@ -1,6 +1,6 @@
 
-import * as facultyRepository from '../models/repositories/faculty.repo.js';
-import {validateMongodbId} from "../utils/validateMongodbId.js";
+import * as facultyRepository from '../repositories/faculty.repo.js';
+import {validateMongodbId} from "../utils/global.utils.js";
 import {createFacultySchema, updateFacultySchema} from "../schemaValidate/faculty/faculty.schema.js";
 
 export const createFaculty = async(req) => {

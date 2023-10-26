@@ -1,7 +1,7 @@
-import EnrollmentYear from "../enrollmentYear.model.js";
-import {ValidationError} from "../../core/errors/validation.error.js";
-import {cleanNullAndEmptyData, getUnSelectObjFromSelectArr} from "../../utils/lodash.utils.js";
-import {NotFoundError} from "../../core/errors/notFound.error.js";
+import EnrollmentYear from "../models/enrollmentYear.model.js";
+import {ValidationError} from "../core/errors/validation.error.js";
+import {cleanNullAndEmptyData, getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
+import {NotFoundError} from "../core/errors/notFound.error.js";
 
 
 const createEnrollmentYear = async (payload) => {

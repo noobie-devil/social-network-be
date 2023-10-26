@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose";
 import moment from 'moment';
 import bcrypt from "bcrypt";
-import config from "../utils/global_config.js";
+import config from "../utils/global.config.js";
 import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 import {getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
 
@@ -31,7 +31,7 @@ const UserSchema = new Schema({
     username: {
         type: String,
         max: 50,
-        unique: true
+        default: ""
     },
     password: {
         type: String,
@@ -143,18 +143,6 @@ UserSchema.methods.toPublicData = function(timestamps = false) {
     return obj
 }
 
-export const unSelectUserFieldToPublic = ({timestamps = false, extend = []}) => {
-    let unSelect = ["password"]
-    if(!timestamps) {
-        unSelect = [...unSelect, "updatedAt", "createdAt"]
-    }
-    if(extend && extend.length !== 0) {
-        unSelect = [...unSelect, ...extend]
-    }
-    console.log(unSelect)
-    return getUnSelectObjFromSelectArr(unSelect)
-}
-
 UserSchema.pre("save", async function(next) {
     if(!this.isNew && !this.isModified('password')) return next()
     const salt = await bcrypt.genSalt(config.BCRYPT.SALT)
@@ -170,13 +158,13 @@ UserSchema.index({email: 1}, { sparse: true, unique: true})
 UserSchema.index({identityCode: 1}, {sparse: true, unique: true})
 UserSchema.index({username: 'text', firstName: 'text', lastName: 'text', homeTown: 'text'})
 
-const UserModel = mongoose.model("UserInfo", UserSchema)
+const User = mongoose.model("User", UserSchema)
 const CollegeStudent = mongoose.model("CollegeStudent", CollegeStudentSchema)
 const Lecturer = mongoose.model("Lecturer", LecturerSchema)
 const Candidate = mongoose.model("Candidate", CandidateSchema)
 
 export {
-    UserModel,
+    User,
     CollegeStudent,
     Lecturer,
     Candidate

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import config from '../utils/global_config.js';
+import config from '../utils/global.config.js';
 import {removeVersionFieldPlugin} from "./plugins.js";
 
 const PORT = config.PORT;

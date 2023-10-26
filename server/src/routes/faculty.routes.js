@@ -1,7 +1,7 @@
 import express from "express";
-import {authentication} from "../../middlewares/auth.middleware.js";
-import {asyncHandler} from "../../core/utils/core.utils.js";
-import {createFaculty, deleteFaculty, updateFaculty} from "../../controllers/faculty.controller.js";
+import {authentication} from "../middlewares/auth.middleware.js";
+import {asyncHandler} from "../core/utils/core.utils.js";
+import {createFaculty, deleteFaculty, updateFaculty} from "../controllers/faculty.controller.js";
 
 const facultyRouter = express.Router()
 

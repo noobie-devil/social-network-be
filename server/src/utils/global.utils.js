@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import {getUnSelectObjFromSelectArr} from "./lodash.utils.js";
 
 export const validateMongodbId = (id) => {
     const isValid = mongoose.Types.ObjectId.isValid(id);
@@ -13,14 +14,21 @@ export const isValidMongoId = (value, helpers) => {
     return value;
 }
 
-export const isExistsUsername = (value, helpers) => {
-
-}
-
 export const maximumCurrentYear = (value, helpers) => {
     const currentYear = new Date().getFullYear()
     if(Number(value) > currentYear) {
         return helpers.error('any.invalid')
     }
     return value
+}
+
+export const unSelectUserFieldToPublic = ({timestamps = false, extend = []}) => {
+    let unSelect = ["password"]
+    if(!timestamps) {
+        unSelect = [...unSelect, "updatedAt", "createdAt"]
+    }
+    if(extend && extend.length !== 0) {
+        unSelect = [...unSelect, ...extend]
+    }
+    return getUnSelectObjFromSelectArr(unSelect)
 }

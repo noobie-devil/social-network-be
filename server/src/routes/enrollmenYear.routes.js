@@ -1,11 +1,11 @@
 import express from "express";
-import {asyncHandler} from "../../core/utils/core.utils.js";
+import {asyncHandler} from "../core/utils/core.utils.js";
 import {
     createEnrollmentYear, deleteEnrollmentYear,
     getEnrollmentYears,
     updateEnrollmentYear
-} from "../../controllers/enrollmentYear.controller.js";
-import {authentication} from "../../middlewares/auth.middleware.js";
+} from "../controllers/enrollmentYear.controller.js";
+import {authentication} from "../middlewares/auth.middleware.js";
 
 const enrollmentYearRouter = express.Router()
 enrollmentYearRouter.use(authentication)

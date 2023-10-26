@@ -1,6 +1,6 @@
 import {CreatedResponse, OkResponse} from "../core/success/success.response.js";
 import * as majorService from "../services/major.service.js";
-import major from "../routes/major/index.js";
+import major from "../routes/major.routes.js";
 
 
 export const createMajor = async(req, res, next) => {

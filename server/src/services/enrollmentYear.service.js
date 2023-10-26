@@ -1,9 +1,9 @@
-import * as enrollmentYearRepo from "../models/repositories/enrollmentYear.repo.js";
+import * as enrollmentYearRepo from "../repositories/enrollmentYear.repo.js";
 import {
     createEnrollmentYearSchema,
     updateEnrollmentYearSchema
 } from "../schemaValidate/enrollmentYear/enrollmentYear.schema.js";
-import {validateMongodbId} from "../utils/validateMongodbId.js";
+import {validateMongodbId} from "../utils/global.utils.js";
 
 export const createEnrollmentYear = async(req) => {
     await createEnrollmentYearSchema.validateAsync(req.body)

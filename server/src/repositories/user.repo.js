@@ -1,14 +1,14 @@
-import Friendship from "../friendship.model.js";
-import User, {unSelectUserFieldToPublic} from "../User.js";
-import {BadRequestError} from "../../core/errors/badRequest.error.js";
+import Friendship from "../models/friendship.model.js";
+import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
-import {cleanData, getUnSelectObjFromSelectArr} from "../../utils/lodash.utils.js";
-import {NotFoundError} from "../../core/errors/notFound.error.js";
-import {UserModel, CollegeStudent, Lecturer} from "../user.model.js";
+import {cleanData, getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
+import {NotFoundError} from "../core/errors/notFound.error.js";
+import {User, CollegeStudent, Lecturer} from "../models/user.model.js";
+import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 
 const respondFriendRequest = async ({friendShipId, receiverId, status}) => {
-    // const session = await mongoose.startSession()
-    // session.startTransaction()
+    const session = await mongoose.startSession()
+    session.startTransaction()
     try {
         const existingFriendShip = await Friendship.findOne({
             _id: new mongoose.Types.ObjectId(friendShipId),
@@ -21,31 +21,29 @@ const respondFriendRequest = async ({friendShipId, receiverId, status}) => {
             throw NotFoundError("An error occurred, the user does not exist")
         }
         existingFriendShip.status = status;
-        await existingFriendShip.save();
+        await existingFriendShip.save({session});
         if(status === 'Accepted') {
             const sender = existingFriendShip.sender
             const receiver = existingFriendShip.receiver
             if(receiver.friends.findIndex(f => f.equals(sender._id)) === -1) {
                 receiver.friends.push(sender._id)
                 receiver.friendCount++
-                await receiver.save()
-                // await receiver.save({session})
+                await receiver.save({session})
             }
             if(sender.friends.findIndex(f => f.equals(receiver._id)) === -1) {
                 sender.friends.push(receiver._id)
                 sender.friendCount++
-                await sender.save()
-                // await sender.save({session})
+                await sender.save({session})
             }
         }
 
-        // await session.commitTransaction()
-        // await session.endSession()
+        await session.commitTransaction()
         return "Request success";
     } catch(err) {
-        // await session.abortTransaction()
-        // await session.endSession()
+        await session.abortTransaction()
         throw err
+    } finally {
+        await session.endSession()
     }
 }
 
@@ -181,14 +179,24 @@ const findUserByEmail = async ({email, select = {
     return await User.findOne({email}).select(select).exec()
 }
 
+const findByEmail = async({email}) => {
+    return await User.findOne({email})
+        .select(unSelectUserFieldToPublic({timestamps: true}))
+        .exec()
+}
+
 const findById = async(id) => {
-    const user = await UserModel.findById(id)
+    const user = await User.findById(id)
     return user.toPublicData()
 
 }
 
-const updateUser = async(id, payload) => {
-
+const create = async (model, payload, session) => {
+    const user = await model.create([payload], {session})
+    if(model === User) {
+        return user.toPublicData()
+    }
+    return user
 }
 
 const updateUserById = async({
@@ -198,12 +206,17 @@ const updateUserById = async({
     returnNew = true,
     session
 }) => {
-    return await model.findByIdAndUpdate(id, payload, { new: returnNew, session: session })
+    const update = await model.findByIdAndUpdate(id, payload, { new: returnNew, session: session })
+    if(model === User) {
+        return update.toPublicData()
+    }
+
+    return update
 }
 
 export {
     sendFriendRequest, findUserById, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
-    findById, updateUserById
+    findById, updateUserById, create, findByEmail
 }
 
 

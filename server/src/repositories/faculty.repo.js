@@ -1,7 +1,7 @@
-import Faculty from "../faculty.model.js";
-import {ValidationError} from "../../core/errors/validation.error.js";
-import {NotFoundError} from "../../core/errors/notFound.error.js";
-import {cleanNullAndEmptyData} from "../../utils/lodash.utils.js";
+import Faculty from "../models/faculty.model.js";
+import {ValidationError} from "../core/errors/validation.error.js";
+import {NotFoundError} from "../core/errors/notFound.error.js";
+import {cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 
 const createFaculty = async(req) => {
     try {

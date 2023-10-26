@@ -1,6 +1,6 @@
 import express from "express";
-import {asyncHandler} from "../../core/utils/core.utils.js";
-import {login, refreshToken, register} from "../../controllers/access.controller.js";
+import {asyncHandler} from "../core/utils/core.utils.js";
+import {login, refreshToken, register} from "../controllers/access.controller.js";
 
 const authRouter = express.Router()
 authRouter.post('/login', asyncHandler(login))

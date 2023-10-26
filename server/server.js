@@ -1,5 +1,5 @@
 import app from './src/app.js';
-import config from './src/utils/global_config.js';
+import config from './src/utils/global.config.js';
 import connectDB from './src/database/mongodb.js';
 
 connectDB().then(() => {

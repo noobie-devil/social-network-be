@@ -10,7 +10,7 @@ import swaggerJSDoc from "swagger-jsdoc";
 import { parse } from "jest-docblock";
 import DocBlock from "docblock";
 import { fileURLToPath } from "url";
-import config from './utils/global_config.js';
+import config from './utils/global.config.js';
 import { notFound, errorHandler } from './middlewares/index.js';
 import router from './routes/index.js';
 import compression from "compression";

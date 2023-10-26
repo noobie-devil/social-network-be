@@ -1,15 +1,24 @@
-import Faculty from "../faculty.model.js";
-import {NotFoundError} from "../../core/errors/notFound.error.js";
-import Major from "../major.model.js";
-import {ValidationError} from "../../core/errors/validation.error.js";
+import Faculty from "../models/faculty.model.js";
+import {NotFoundError} from "../core/errors/notFound.error.js";
+import Major from "../models/major.model.js";
+import {ValidationError} from "../core/errors/validation.error.js";
 import mongoose from "mongoose";
-import {cleanNullAndEmptyData} from "../../utils/lodash.utils.js";
+import {cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 
 
 const updateMajor = async (majorId, updateData) => {
     try {
         updateData = cleanNullAndEmptyData(updateData)
-        const updateMajor = await Major.findByIdAndUpdate(majorId, updateData, {new: true})
+        const { ...rest } = updateData
+        const queryObj = {}
+        for(const key in rest) {
+            if(Array.isArray(rest[key])) {
+                queryObj.$addToSet = { [key]: {$each: rest[key]} }
+            } else {
+                queryObj[key] = rest[key]
+            }
+        }
+        const updateMajor = await Major.findByIdAndUpdate(majorId, queryObj, {new: true})
         if (!updateMajor) {
             throw new NotFoundError("Resource not found")
         }
@@ -67,7 +76,14 @@ const createMajor = async ({code, name, facultyId}) => {
     } catch (e) {
         await session.abortTransaction()
         await session.endSession();
-        throw e;
+        if(e.errors['name'].message) {
+            throw new ValidationError({
+                message: e.errors['name'].message,
+                statusCode: 409
+            })
+        } else {
+            throw e;
+        }
     }
 }
 
