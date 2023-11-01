@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
 const MajorSchema = new Schema({
     code: {
@@ -11,53 +12,52 @@ const MajorSchema = new Schema({
     //     required: true,
     //     unique: true
     // },
-    name: [
-        {
-            lang: {
-                type: String,
-                required: true
+    name: {
+        type: Map,
+        of: {
+            type: String
+        },
+        validate: {
+            validator: function (value) {
+                const valueArray = Array.from(value.values())
+                return new Set(valueArray).size === valueArray.length
             },
-            value: {
-                type: String,
-                required: true
-            }
+            message: 'Values in name must be unique'
         }
-    ],
+    },
     faculty: {
         type: mongoose.Types.ObjectId,
         ref: "Faculty"
     }
+},
+{
+    timestamps: true,
+    validateBeforeSave: true
 })
 
-MajorSchema.path('name').validate(function (value) {
-    const langSet = new Set()
-    let duplicateData
-    for(const item of value) {
-        if(langSet.has(item.lang)) {
-            duplicateData = item.lang
-            return false
+MajorSchema.plugin(longTimestampsPlugin)
+MajorSchema.plugin(removeVersionFieldPlugin)
+MajorSchema.pre('findOneAndUpdate', function (next) {
+    this.options.runValidators = true
+    next()
+})
+
+MajorSchema.pre('save', function(next) {
+    const update = this.getUpdate()
+    const {name} = update.$set
+    const langSet = new Set();
+    for (const key in name) {
+        console.log(key)
+        if (langSet.has(name[key])) {
+            const error = new Error('Values in name must be unique');
+            return next(error);
         }
-        langSet.add(item.lang)
+        langSet.add(name[key]);
     }
-    return true
-}, 'Type `{VALUE}` existed', 'Duplicate data')
+    next()
+})
 
-MajorSchema.path('name').validate(function (value) {
-    const langSet = new Set()
-    let duplicateData
-    for(const item of value) {
-        if(langSet.has(item.value)) {
-            duplicateData = item.value
-            return false
-        }
-        langSet.add(item.value)
-    }
-    return true
-}, 'Value `{VALUE}` existed', 'Duplicate data')
-
-
-
-MajorSchema.index({code: 1, name: 1, faculty: 1}, {
+MajorSchema.index({code: 1, faculty: 1}, {
     unique: true, sparse: true
 })
 

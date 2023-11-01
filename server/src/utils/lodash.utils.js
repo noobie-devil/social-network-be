@@ -8,6 +8,10 @@ export const cleanData = (obj) => {
     return _.omitBy(obj, v => v == null)
 }
 
+export const cleanNullAndEmptyArray = (obj) => {
+    return _.omitBy(obj, v => v == null || (Array.isArray(v) && v.length === 0))
+}
+
 export const cleanNullAndEmptyData = (obj) => {
     return _.omitBy(obj, v => v == null || v === '' || v === undefined)
 }

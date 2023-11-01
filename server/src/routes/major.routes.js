@@ -5,7 +5,7 @@ import {createMajor, deleteMajor, updateMajor} from "../controllers/major.contro
 
 const majorRouter = express.Router()
 
-majorRouter.use(authentication)
+// majorRouter.use(authentication)
 majorRouter.post('/', asyncHandler(createMajor))
 majorRouter.put("/:majorId", asyncHandler(updateMajor))
 majorRouter.delete("/:majorId", asyncHandler(deleteMajor))

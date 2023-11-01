@@ -5,7 +5,7 @@ import {createFaculty, deleteFaculty, updateFaculty} from "../controllers/facult
 
 const facultyRouter = express.Router()
 
-facultyRouter.use(authentication)
+// facultyRouter.use(authentication)
 // facultyRouter.get('/', asyncHandler(getFaculties))
 facultyRouter.post('/', asyncHandler(createFaculty))
 facultyRouter.put('/:facultyId', asyncHandler(updateFaculty))

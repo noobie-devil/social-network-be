@@ -3,22 +3,29 @@ import {NotFoundError} from "../core/errors/notFound.error.js";
 import Major from "../models/major.model.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import mongoose from "mongoose";
-import {cleanNullAndEmptyData} from "../utils/lodash.utils.js";
+import {cleanNullAndEmptyArray, cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 
+
+
+const formatDataRecursively = (input, parentKey = '') => {
+    const formattedData = {};
+    for (let key in input) {
+        if (typeof input[key] === 'object') {
+            const nestedData = formatDataRecursively(input[key], `${parentKey}${key}.`);
+            Object.assign(formattedData, nestedData);
+        } else {
+            formattedData[`${parentKey}${key}`] = input[key];
+        }
+    }
+    return formattedData;
+};
 
 const updateMajor = async (majorId, updateData) => {
     try {
-        updateData = cleanNullAndEmptyData(updateData)
-        const { ...rest } = updateData
-        const queryObj = {}
-        for(const key in rest) {
-            if(Array.isArray(rest[key])) {
-                queryObj.$addToSet = { [key]: {$each: rest[key]} }
-            } else {
-                queryObj[key] = rest[key]
-            }
-        }
-        const updateMajor = await Major.findByIdAndUpdate(majorId, queryObj, {new: true})
+        updateData = cleanNullAndEmptyArray(updateData)
+        updateData = formatDataRecursively(updateData)
+        // const updateMajor = await Major.findByIdAndUpdate(majorId, updateData, {new: true, runValidators: true, context: 'query'})
+        const updateMajor = await Major.findOneAndUpdate({_id: majorId}, {$set: updateData}, {new: true, runValidators: true, context: 'query'})
         if (!updateMajor) {
             throw new NotFoundError("Resource not found")
         }
@@ -58,7 +65,7 @@ const createMajor = async ({code, name, facultyId}) => {
     try {
         const existsFaculty = await Faculty.findById(facultyId)
         if (!existsFaculty) throw new NotFoundError("Invalid faculty id")
-        const existsMajor = await Major.findOne({code, name, faculty: facultyId})
+        const existsMajor = await Major.findOne({code, faculty: facultyId})
         if (existsMajor) throw new ValidationError({
             message: "Already exists major",
             statusCode: 409
@@ -70,13 +77,10 @@ const createMajor = async ({code, name, facultyId}) => {
             {upsert: true, session}
         )
         await session.commitTransaction()
-        await session.endSession()
         return newMajor
-
     } catch (e) {
         await session.abortTransaction()
-        await session.endSession();
-        if(e.errors['name'].message) {
+        if(e.errors && e.errors['name'].message) {
             throw new ValidationError({
                 message: e.errors['name'].message,
                 statusCode: 409
@@ -84,6 +88,8 @@ const createMajor = async ({code, name, facultyId}) => {
         } else {
             throw e;
         }
+    } finally {
+        await session.endSession();
     }
 }
 
