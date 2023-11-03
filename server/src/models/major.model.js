@@ -37,25 +37,26 @@ const MajorSchema = new Schema({
 
 MajorSchema.plugin(longTimestampsPlugin)
 MajorSchema.plugin(removeVersionFieldPlugin)
-MajorSchema.pre('findOneAndUpdate', function (next) {
+MajorSchema.pre('findOneAndUpdate', function(next) {
+    console.log(this.getUpdate())
+    console.log(this.name)
     this.options.runValidators = true
+    this.options.validateModifiedOnly
     next()
 })
-
-MajorSchema.pre('save', function(next) {
-    const update = this.getUpdate()
-    const {name} = update.$set
-    const langSet = new Set();
-    for (const key in name) {
-        console.log(key)
-        if (langSet.has(name[key])) {
-            const error = new Error('Values in name must be unique');
-            return next(error);
-        }
-        langSet.add(name[key]);
-    }
+MajorSchema.pre('save', function (next) {
+    console.log('preSave')
     next()
 })
+MajorSchema.pre('update', function (next) {
+    console.log('preUpdate')
+    next()
+})
+MajorSchema.path('name').validate(function (value) {
+    const valueArray = Array.from(value.values())
+    console.log("run")
+    return new Set(valueArray).size === valueArray.length
+}, 'Values in name must be unique')
 
 MajorSchema.index({code: 1, faculty: 1}, {
     unique: true, sparse: true

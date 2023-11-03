@@ -2,7 +2,7 @@ import Faculty from "../models/faculty.model.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import Major from "../models/major.model.js";
 import {ValidationError} from "../core/errors/validation.error.js";
-import mongoose from "mongoose";
+import mongoose, {startSession} from "mongoose";
 import {cleanNullAndEmptyArray, cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 
 
@@ -21,17 +21,31 @@ const formatDataRecursively = (input, parentKey = '') => {
 };
 
 const updateMajor = async (majorId, updateData) => {
+    const session = await startSession()
+    session.startTransaction()
     try {
         updateData = cleanNullAndEmptyArray(updateData)
         updateData = formatDataRecursively(updateData)
-        // const updateMajor = await Major.findByIdAndUpdate(majorId, updateData, {new: true, runValidators: true, context: 'query'})
-        const updateMajor = await Major.findOneAndUpdate({_id: majorId}, {$set: updateData}, {new: true, runValidators: true, context: 'query'})
+        const updateMajor = await Major.findByIdAndUpdate(majorId, updateData, {new: true, }).session(session)
+        // const updateMajor = await Major.findOneAndUpdate({_id: majorId}, updateData, {new: true, runValidators: true, context: 'query'})
         if (!updateMajor) {
             throw new NotFoundError("Resource not found")
         }
+        const error = updateMajor.validateSync()
+
+        if(error && error.errors && error.errors['name'].message) {
+            throw new ValidationError({
+                message: error.errors['name'].message,
+                statusCode: 409
+            })
+        }
+        await session.commitTransaction()
         return updateMajor
     } catch (e) {
+        await session.abortTransaction()
         throw e;
+    } finally {
+        await session.endSession()
     }
 }
 
