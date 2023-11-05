@@ -11,7 +11,7 @@ const ResourceSchema = new Schema({
     othersPermission: {
         type: Number,
         default: 4,
-        enum: [1, 2, 3, 4, 5, 6, 7]
+        enum: [0, 1, 2, 3, 4, 5, 6, 7]
     },
     permissions: [
         {
@@ -42,17 +42,24 @@ const ResourcePermissionSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Resource"
     },
-    group: {
-        type: Schema.Types.ObjectId,
-        ref: "AdminGroup"
+    // group: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "AdminGroup"
+    // },
+    // user: {
+    //     type: Schema.Types.ObjectId,
+    //     ref: "Admin"
+    // },
+    actor: {
+        type: Schema.Type.ObjectId,
     },
-    user: {
-        type: Schema.Types.ObjectId,
-        ref: "Admin"
+    actorType: {
+        type: String,
+        enum: ["Admin", "AdminGroup"]
     },
     operation: {
         type: Number,
-        enum: [1, 2, 3, 4, 5, 6, 7],
+        enum: [0, 1, 2, 3, 4, 5, 6, 7],
         default: 6
     },
     createdBy: {
@@ -69,8 +76,9 @@ const ResourcePermissionSchema = new Schema({
 
 ResourcePermissionSchema.plugin(longTimestampsPlugin)
 ResourcePermissionSchema.plugin(removeVersionFieldPlugin)
-ResourcePermissionSchema.index({resource: 1, group: 1}, {sparse: true, unique: true})
-ResourcePermissionSchema.index({resource: 1, user: 1}, {sparse: true, unique: true})
+// ResourcePermissionSchema.index({resource: 1, group: 1}, {sparse: true, unique: true})
+// ResourcePermissionSchema.index({resource: 1, user: 1}, {sparse: true, unique: true})
+ResourcePermissionSchema.index({resource: 1, actor: 1}, {sparse: true, unique: true})
 
 const Resource = mongoose.model("Resource", ResourceSchema)
 const ResourcePermission = mongoose.model("ResourcePermission", ResourcePermissionSchema)

@@ -129,11 +129,6 @@ class UserDTO {
             },
             session
         )
-        // const userCreated = await UserModel.create([{
-        //     ...this,
-        //     _id: userId
-        // }], {session: session})
-        // return userCreated[0].toPublicData()
     }
 
     async update(userId, payload, session) {

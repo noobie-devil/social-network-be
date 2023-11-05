@@ -19,3 +19,7 @@ export const deleteMajor = async(req) => {
     validateMongodbId(id)
     return await majorRepository.deleteMajor(id)
 }
+
+export const getMajor = async(req) => {
+    return await majorRepository.getMajor(req.body)
+}

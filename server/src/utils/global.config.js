@@ -21,5 +21,11 @@ export default {
     },
     BCRYPT: {
         SALT: +getEnvVariable("BCRYPT_SALT")
+    },
+    MAILER: {
+        CLIENT_ID: getEnvVariable('MAILER_CLIENT_ID'),
+        CLIENT_SECRET: getEnvVariable('MAILER_CLIENT_SECRET'),
+        REFRESH_TOKEN: getEnvVariable('MAILER_REFRESH_TOKEN'),
+        ADDRESS: getEnvVariable('MAILER_ADDRESS')
     }
 }

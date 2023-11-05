@@ -67,10 +67,6 @@ const AdminGroupSchema = new Schema({
         required: true,
         unique: true
     },
-    groupNameVi: {
-        type: String,
-        unique: true
-    },
     admins: [
         {
             type: Schema.Types.ObjectId,

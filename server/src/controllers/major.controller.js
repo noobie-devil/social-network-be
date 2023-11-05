@@ -22,3 +22,8 @@ export const deleteMajor = async(req, res, next) => {
     }).send(res)
 }
 
+export const getMajor = async(req, res, next) => {
+    new OkResponse({
+        data: await majorService.getMajor(req)
+    }).send(res)
+}

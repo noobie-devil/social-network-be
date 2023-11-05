@@ -3,7 +3,7 @@ import {NotFoundError} from "../core/errors/notFound.error.js";
 import Major from "../models/major.model.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import mongoose, {startSession} from "mongoose";
-import {cleanNullAndEmptyArray, cleanNullAndEmptyData} from "../utils/lodash.utils.js";
+import {cleanNullAndEmptyArray} from "../utils/lodash.utils.js";
 
 
 
@@ -73,6 +73,22 @@ const deleteMajor = async (majorId) => {
     }
 }
 
+const getMajor = async({search = "", limit = 20, page = 1, lang = "vi"}) => {
+    const skip = (page - 1) * limit
+    const filter = {
+        $or: [{ code: new RegExp(search, 'i') }, { [`name.${lang}`]: new RegExp(search, 'i')}]
+    }
+    const majors = await Major.find(filter)
+        .limit(limit)
+        .skip(skip)
+        .lean()
+    const count = await Major.countDocuments(filter)
+    return {
+        majors,
+        totalCount: count
+    }
+}
+
 const createMajor = async ({code, name, facultyId}) => {
     const session = await mongoose.startSession()
     session.startTransaction()
@@ -111,5 +127,6 @@ const createMajor = async ({code, name, facultyId}) => {
 export {
     createMajor,
     updateMajor,
-    deleteMajor
+    deleteMajor,
+    getMajor
 }
