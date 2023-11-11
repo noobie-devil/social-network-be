@@ -7,7 +7,6 @@ import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugin
 const AdminSchema = new Schema({
     username: {
         type: String,
-        required: true
     },
     email: {
         type: String,

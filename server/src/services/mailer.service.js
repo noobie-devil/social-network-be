@@ -1,7 +1,14 @@
 import nodemailer from 'nodemailer'
 import globalConfig from "../utils/global.config.js";
 import {OAuth2Client} from "google-auth-library"
+import path from "path";
+import hbs from 'nodemailer-express-handlebars'
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename)
 
+console.log(__dirname)
+console.log(path.resolve('./src/public/assets/images/UTE_SOCIAL.png'))
 
 let authClient
 const initOAuth2Client = () => {
@@ -46,9 +53,62 @@ const getAccessToken = async() => {
     }
 }
 
+const handlebarOptions = {
+    viewEngine: {
+        extName: ".handlebars",
+        partialsDir: path.resolve('./src/public/views'),
+        defaultLayout: false
+    },
+    viewPath: path.resolve('./src/public/views'),
+    extName: ".handlebars"
+}
 
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
+export const sendMail = async({to, subject, title, body}) => {
+    const accessToken = await getAccessToken()
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            type: 'OAuth2',
+            user: globalConfig.MAILER.ADDRESS,
+            clientId: globalConfig.MAILER.CLIENT_ID,
+            clientSecret: globalConfig.MAILER.CLIENT_SECRET,
+            refresh_token: globalConfig.MAILER.REFRESH_TOKEN,
+            accessToken: accessToken
+        },
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+    })
 
-})
+    transporter.use('compile', hbs(handlebarOptions))
+    const mailOptions = {
+        from: 'utesocial.app',
+        to: to,
+        subject: subject,
+        template: 'mail.template',
+        attachments:[{
+            filename: 'UTE_SOCIAL.png',
+            path: path.resolve('./src/public/assets/images/UTE_SOCIAL.png'),
+            cid: "logo"
+        }, {
+            filename: "Beefree-logo.png",
+            path: path.resolve('./src/public/assets/images/Beefree-logo.png'),
+            cid: "beefreeLogo"
+        }
+        ],
+        context: {
+            title: title,
+            body: body
+        }
+    }
+    transporter.sendMail(mailOptions, function(error, info) {
+        if(error) {
+            console.log(error)
+        } else {
+            console.log(`Email sent: ${info.response}`)
+        }
+    })
+}
+
+

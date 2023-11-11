@@ -8,4 +8,12 @@ const createAdminSchema = Joi.object({
             tlds: {allow: ['com', 'vn']}
         })
         .required(),
+    password: Joi.string()
+        .required()
+        .min(8)
+        .max(256),
 })
+
+export {
+    createAdminSchema
+}
