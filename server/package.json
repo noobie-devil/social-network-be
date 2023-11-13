@@ -17,6 +17,8 @@
     "docblock": "^0.1.7",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "generate-password": "^1.7.1",
+    "google-auth-library": "^9.2.0",
     "gridfs-stream": "^1.1.1",
     "helmet": "^6.0.1",
     "http-errors": "^2.0.0",
@@ -24,14 +26,16 @@
     "joi": "^17.8.4",
     "jsonwebtoken": "^9.0.1",
     "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "mongoose": "^7.0.3",
     "morgan": "^1.10.0",
+    "nodemailer": "^6.9.7",
+    "nodemailer-express-handlebars": "^6.1.0",
     "nodemon": "^3.0.1",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.2",
-    "uuid": "^9.0.0",
-    "moment": "^2.29.4"
+    "uuid": "^9.0.0"
   }
 }
