@@ -1,35 +1,72 @@
 import KeyToken from "../models/keyToken.model.js";
 import mongoose from "mongoose";
 
-export const createKeyToken = async ({userId, publicKey, privateKey, refreshToken}) => {
-    const filter = {user: userId}
-    const update = {
+const createKeyToken = async ({userId, publicKey, privateKey, refreshToken}, isAdmin) => {
+    const filter = isAdmin ? { admin: userId } : { user: userId }
+    const tokens = await KeyToken.findOneAndUpdate(filter, {
         publicKey, privateKey, refreshTokenUsed: [], refreshToken
-    }
-    const options = { upsert: true, new: true}
-    const tokens = await KeyToken.findOneAndUpdate(filter, update, options)
-
+    }, { upsert: true, new: true})
     return tokens ? tokens.publicKey : null
 }
 
-export const findByUserId = async(userId) => {
-    return await KeyToken.findOne({ user: new mongoose.Types.ObjectId(userId) }).populate("user").lean().exec()
+// const findByUserId = async(userId) => {
+//     return await KeyToken.findOne({ user: new mongoose.Types.ObjectId(userId) }).populate("user").lean().exec()
+// }
+
+const findByAdminId = async(aid) => {
+    return await KeyToken.findOne({ admin: new mongoose.Types.ObjectId(aid) }).populate("admin").lean().exec()
 }
 
-export const removeKeyById = async(id) => {
+const removeKeyById = async(id) => {
     return await KeyToken.deleteOne(id).lean().exec()
 }
 
-export const findByRefreshTokenUsed = async(refreshToken) => {
+const findByRefreshTokenUsed = async(refreshToken) => {
     return await KeyToken.findOne({ refreshTokenUsed: refreshToken }).lean().exec()
 }
 
-export const findByRefreshToken = async(refreshToken) => {
-    console.log(refreshToken)
-    return await KeyToken.findOne({ refreshToken: refreshToken}).populate("user", "_id email").lean().exec()
+const findByUserId = async(uid) => {
+    const filter = {
+        $or: [{ admin: uid}, { user: uid}]
+    }
+    return await KeyToken.findOne(filter)
+        .populate("user")
+        .populate("admin")
+        .lean()
+        .exec()
 }
 
-export const removeKeyByUserId = async(userId) => {
+const findByRefreshToken = async(refreshToken) => {
+    console.log(refreshToken)
+    return await KeyToken.findOne({ refreshToken: refreshToken})
+        .populate("admin", "_id email")
+        .populate("user", "_id email")
+        .lean()
+        .exec()
+}
+
+const removeKeyByUserId = async(userId) => {
     return await KeyToken.deleteOne({ user: userId }).exec()
 }
 
+// const removeKeyByUserId = async(uid) => {
+//     const filter = {
+//         $or: [{ admin: uid }, { user: uid }]
+//     }
+//     return await KeyToken.findOneAndDelete(filter).exec()
+// }
+
+const removeKeyByAdminId = async(aid) => {
+    return await KeyToken.deleteOne({ admin: aid }).exec()
+}
+
+export {
+    createKeyToken,
+    findByUserId,
+    findByAdminId,
+    removeKeyById,
+    findByRefreshTokenUsed,
+    findByRefreshToken,
+    removeKeyByUserId,
+    removeKeyByAdminId
+}

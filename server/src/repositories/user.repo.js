@@ -69,7 +69,7 @@ const sendFriendRequest = async ({senderId, receiverId}) => {
     return "Send request success";
 }
 
-const getFriendsList = async ({userId, search = "", limit = 20, page = 1, select = []}) => {
+const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select = []}) => {
     const skip = (page - 1) * limit
     const extend = ["__v", "friends"]
 
@@ -179,9 +179,9 @@ const findUserByEmail = async ({email, select = {
     return await User.findOne({email}).select(select).exec()
 }
 
-const findByEmail = async({email}) => {
+const findByEmail = async(email) => {
     return await User.findOne({email})
-        .select(unSelectUserFieldToPublic({timestamps: true}))
+        // .select(unSelectUserFieldToPublic({timestamps: true}))
         .exec()
 }
 

@@ -4,6 +4,7 @@ import {
     updateEnrollmentYearSchema
 } from "../schemaValidate/enrollmentYear/enrollmentYear.schema.js";
 import {validateMongodbId} from "../utils/global.utils.js";
+import {baseQuerySchema} from "../schemaValidate/query.schema.js";
 
 export const createEnrollmentYear = async(req) => {
     await createEnrollmentYearSchema.validateAsync(req.body)
@@ -11,7 +12,8 @@ export const createEnrollmentYear = async(req) => {
 }
 
 export const getEnrollmentYears = async(req) => {
-    return await enrollmentYearRepo.getEnrollmentYears(req.body)
+    await baseQuerySchema.validateAsync(req.query)
+    return await enrollmentYearRepo.getEnrollmentYears(req.query)
 }
 
 export const updateEnrollmentYear = async(req) => {

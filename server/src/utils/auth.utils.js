@@ -2,7 +2,10 @@ import jwt from "jsonwebtoken";
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
 import {findByUserId} from "../services/keyToken.service.js";
 import {asyncHandler} from "../core/utils/core.utils.js";
+import {Admin} from "../models/admin.model.js";
+import { config } from 'dotenv';
 
+config();
 export const createTokenPair = async (payload, publicKey, privateKey) => {
     const accessToken = await generateAccessToken(payload, publicKey)
     const refreshToken = await generateRefreshToken(payload, privateKey)
@@ -43,5 +46,24 @@ const authentication = asyncHandler(async (req, res, next) => {
 })
 
 export const verifyJwt = async(token, keySecret) => {
-    return await jwt.verify(token, keySecret)
+    return jwt.verify(token, keySecret)
 }
+
+
+export const defaultsCreate = async() => {
+    const defaultUname = process.env['DEFAULT_SYSUNAME']
+    console.log(defaultUname)
+    const existingSysAdmin = await Admin.findOne({username: defaultUname})
+    if(existingSysAdmin) {
+        return
+    }
+    const defaultPwd = process.env['DEFAULT_SYSADPWD']
+    const sysAdmin = new Admin({
+        username: defaultUname,
+        email: process.env['DEFAULT_SYSMAIL'],
+        password: defaultPwd,
+        type: 'sysAdmin'
+    })
+    await sysAdmin.save()
+}
+

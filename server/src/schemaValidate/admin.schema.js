@@ -22,15 +22,42 @@ const createAdminGroupSchema = Joi.object({
         .max(32)
 })
 
-const updateAdminToGroup = Joi.object({
+const updateAdminToGroupSchema = Joi.object({
     adminId: Joi.string()
         .required()
         .custom(isValidMongoId, "Invalid Id")
 })
 
 
+const updateAdminGroupSchema = Joi.object({
+    groupName: Joi.string()
+        .allow(null)
+        .not('')
+})
+
+const changeAdminPasswordSchema = Joi.object({
+    currentPassword: Joi.string()
+        .required()
+        .min(8)
+        .max(256),
+    newPassword: Joi.string()
+        .required()
+        .min(8)
+        .max(256)
+})
+
+const changeAdminUsernameSchema = Joi.object({
+    username: Joi.string()
+        .required()
+        .min(1)
+        .not(null)
+})
+
 export {
     createAdminSchema,
     createAdminGroupSchema,
-    updateAdminToGroup
+    updateAdminToGroupSchema,
+    updateAdminGroupSchema,
+    changeAdminPasswordSchema,
+    changeAdminUsernameSchema
 }

@@ -50,15 +50,18 @@ AdminSchema.pre('save', async function(next) {
         const salt = await bcrypt.genSalt(global_config.BCRYPT.SALT)
         this.password = await bcrypt.hashSync(this.password, salt)
     }
-    if(this.isModified('type') && this.type === 'sysAdmin') {
+
+    if(!this.isNew && this.isModified('type') && this.type === 'sysAdmin') {
         throw new ForbiddenError("Permission denied. You do not have the authority")
     }
     next()
 })
 AdminSchema.methods.comparePassword = async function(password) {
+    console.log(password)
+    console.log(this)
+    console.log(this.password)
     return await bcrypt.compareSync(password, this.password)
 }
-
 
 const AdminGroupSchema = new Schema({
     groupName: {
@@ -71,7 +74,15 @@ const AdminGroupSchema = new Schema({
             type: Schema.Types.ObjectId,
             ref: "Admin"
         }
-    ]
+    ],
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    }
 },{
     timestamps: true
 })
@@ -82,7 +93,9 @@ AdminGroupSchema.plugin(removeVersionFieldPlugin)
 const Admin = mongoose.model("Admin", AdminSchema)
 const AdminGroup = mongoose.model("AdminGroup", AdminGroupSchema)
 
+
 export {
     Admin,
     AdminGroup
 }
+

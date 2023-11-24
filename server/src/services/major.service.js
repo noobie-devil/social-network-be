@@ -1,4 +1,4 @@
-import {createMajorSchema, updateMajorSchema} from "../schemaValidate/major/major.schema.js";
+import {createMajorSchema, queryMajorSchema, updateMajorSchema} from "../schemaValidate/major/major.schema.js";
 import * as majorRepository from '../repositories/major.repo.js';
 import {validateMongodbId} from "../utils/global.utils.js";
 
@@ -21,5 +21,6 @@ export const deleteMajor = async(req) => {
 }
 
 export const getMajor = async(req) => {
-    return await majorRepository.getMajor(req.body)
+    await queryMajorSchema.validateAsync(req.query)
+    return await majorRepository.getMajor(req.query)
 }

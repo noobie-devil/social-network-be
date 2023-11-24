@@ -42,16 +42,8 @@ const ResourcePermissionSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "Resource"
     },
-    // group: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "AdminGroup"
-    // },
-    // user: {
-    //     type: Schema.Types.ObjectId,
-    //     ref: "Admin"
-    // },
     actor: {
-        type: Schema.Type.ObjectId,
+        type: Schema.Types.ObjectId,
     },
     actorType: {
         type: String,

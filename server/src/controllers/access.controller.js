@@ -8,20 +8,20 @@ export const logout = async(req, res, next) => {
     }).send(res)
 }
 
-export const refreshToken = async(req, res, next) => {
+export const userRefreshToken = async(req, res, next) => {
     new SuccessResponse({
-        data: await accessService.refreshTokenHandler(req)
+        data: await accessService.refreshTokenHandler(req, false)
     }).send(res)
 }
-export const login = async(req, res, next) => {
+export const userLogin = async(req, res, next) => {
     new SuccessResponse({
         message: "Login successfully",
         // data: await accessService.loginHandler(req.body)
-        data: await accessService.login(req.body)
+        data: await accessService.login(req, false)
     }).send(res)
 }
 
-export const register = async(req, res, next) => {
+export const userRegister = async(req, res, next) => {
     const response = new CreatedResponse({
         message: "Registered successfully!",
         // data: await accessService.registerHandler(req)
@@ -29,4 +29,17 @@ export const register = async(req, res, next) => {
     })
     console.log(response)
     response.send(res)
+}
+
+export const adminLogin = async(req, res, next) => {
+    new SuccessResponse({
+        message: "Login successfully",
+        data: await accessService.login(req, true)
+    }).send(res)
+}
+
+export const adminRefreshToken = async(req, res, next) => {
+    new SuccessResponse({
+        data: await accessService.refreshTokenHandler(req, true)
+    }).send(res)
 }

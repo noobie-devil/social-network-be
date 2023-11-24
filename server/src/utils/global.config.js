@@ -14,7 +14,7 @@ export default {
     SERVER: {
         PORT: +getEnvVariable('PORT'),
         MORGAN_STYLE: getEnvVariable('SERVER_MORGAN_STYLE'),
-
+        FIRST_SEGMENT_URL: getEnvVariable('FIRST_BASE_SEGMENT_URL')
     },
     MONGODB: {
         URL: getEnvVariable('MONGO_URL'),

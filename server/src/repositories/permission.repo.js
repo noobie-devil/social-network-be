@@ -38,6 +38,23 @@ class ResourcePermissionDTO {
 }
 
 
+const findPermissionByResourceName = async (resourceName) => {
+    return await Resource.findOne({resourceName}).exec()
+}
+
+const checkAdminHasPermission = async(aid, gid, resId) => {
+    const filter = {
+        $or: []
+    }
+    if(aid) {
+        filter.$or.push({ $and: [{actor: aid, actorType: 'Admin'}, { resource: resId}] })
+    }
+    if(gid) {
+        filter.$or.push({ $and: [{ actor: gid, actorType: 'AdminGroup' }, { resource: resId }] })
+    }
+    return await ResourcePermission.findOne(filter).exec()
+}
+
 const createResource = async(payload, session = null) => {
     const {resourceName} = payload
     const existedResource = await Resource.findOne({resourceName})
@@ -94,3 +111,9 @@ const createNewPermission = async({resourceName, othersPermission = 4, actor, ac
     }
 }
 
+export {
+    findPermissionByResourceName,
+    checkAdminHasPermission,
+    createResource,
+    createResourcePermission
+}

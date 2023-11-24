@@ -1,7 +1,22 @@
-import {createAdminGroupSchema, createAdminSchema, updateAdminToGroup} from "../schemaValidate/admin.schema.js"
+import {
+    changeAdminPasswordSchema,
+    changeAdminUsernameSchema,
+    createAdminGroupSchema,
+    createAdminSchema, updateAdminGroupSchema,
+    updateAdminToGroupSchema
+} from "../schemaValidate/admin.schema.js"
 import * as adminRepo from "../repositories/admin.repo.js"
 import {sendMail} from "./mailer.service.js";
 import {validateMongodbId} from "../utils/global.utils.js";
+import {baseQuerySchema} from "../schemaValidate/query.schema.js";
+import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
+
+
+const getAdmin = async(req) => {
+    await baseQuerySchema.validateAsync(req.query)
+    return await adminRepo.getAdmin(req.query)
+}
+
 const createAdmin = async(req) => {
     await createAdminSchema.validateAsync(req.body)
     const admin = await adminRepo.createAdmin(req.body)
@@ -16,28 +31,78 @@ const createAdmin = async(req) => {
     return admin
 }
 
+const changeAdminUsername = async(req) => {
+    const aid = req.params.adminId
+    validateMongodbId(aid)
+    await changeAdminUsernameSchema.validateAsync(req.body)
+    return await adminRepo.changeUsername(req.body, aid)
+}
+
+const changeAdminPassword = async(req) => {
+    const aid = req.params.adminId
+    validateMongodbId(aid)
+    await changeAdminPasswordSchema.validateAsync(req.body)
+    return await adminRepo.changePassword(req.body, aid)
+}
+
+const deleteAdmin = async(req) => {
+    const aid = req.params.adminId
+    validateMongodbId(aid)
+    return await adminRepo.deleteAdmin(aid)
+}
+
+const getAdminGroup = async(req) => {
+    return await adminRepo.getAdminGroup(req.body)
+}
 const createAdminGroup = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
     await createAdminGroupSchema.validateAsync(req.body)
+    req.body.updatedBy = req.user._id
+    req.body.createdBy = req.user._id
     return await adminRepo.createAdminGroup(req.body)
 }
 
-const addToGroup = async(req) => {
-    const gid = req.params.groupdId
+const updateAdminGroup = async(req) => {
+    const gid = req.params.groupId
     validateMongodbId(gid)
-    await updateAdminToGroup.validateAsync(req.body)
-    return await adminRepo.addToGroup({aid: req.body.adminId, gid})
+    await updateAdminGroupSchema.validateAsync(req.body)
+    return await adminRepo.updateAdminGroup(gid, req.body)
+}
+
+const deleteAdminGroup = async(req) => {
+    const gid = req.params.groupId
+    validateMongodbId(gid)
+    return await adminRepo.deleteAdminGroup(gid)
+}
+
+const addToGroup = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const gid = req.params.groupId
+    validateMongodbId(gid)
+    await updateAdminToGroupSchema.validateAsync(req.body)
+    const updatedBy = req.user._id
+    return await adminRepo.addToGroup({aid: req.body.adminId, gid, updatedBy})
 }
 
 const removeFromGroup = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
     const gid = req.params.groupId
     validateMongodbId(gid)
-    await updateAdminToGroup.validateAsync(req.body)
-    return await adminRepo.removeFromGroup({aid: req.body.adminId, gid})
+    await updateAdminToGroupSchema.validateAsync(req.body)
+    const updatedBy = req.user._id
+    return await adminRepo.removeFromGroup({aid: req.body.adminId, gid, updatedBy})
 }
 
 export {
     createAdmin,
+    getAdmin,
+    changeAdminPassword,
+    changeAdminUsername,
+    deleteAdmin,
+    getAdminGroup,
     createAdminGroup,
+    updateAdminGroup,
+    deleteAdminGroup,
     addToGroup,
-    removeFromGroup
+    removeFromGroup,
 }

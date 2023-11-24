@@ -65,7 +65,7 @@ app
     .use(compression())
     .use(cors())
     .use("/assets", express.static(path.join(__dirname, 'public/assets')))
-    .use('/api/v1', router)
+    .use(config.SERVER.FIRST_SEGMENT_URL, router)
     // .use('/api-doc', swaggerUi.serve, swaggerUi.setup(specs))
     .use(notFound)
     .use(errorHandler);

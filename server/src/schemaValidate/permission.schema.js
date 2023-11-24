@@ -2,6 +2,17 @@ import Joi from "joi";
 import {isValidMongoId} from "../utils/global.utils.js";
 
 
+const createResourceSchema = Joi.object({
+    resourceName: Joi.string()
+        .required()
+        .not(null),
+    othersPermission: Joi.number()
+        .optional()
+        .not(null)
+        .min(0)
+        .max(7),
+})
+
 const createPermissionSchema = Joi.object({
     resourceName: Joi.string()
         .required()
@@ -25,5 +36,6 @@ const createPermissionSchema = Joi.object({
 })
 
 export {
-    createPermissionSchema
+    createPermissionSchema,
+    createResourceSchema
 }

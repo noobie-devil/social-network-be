@@ -8,15 +8,7 @@ import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
 import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";
 import {ValidationError} from "../core/errors/validation.error.js";
-
-export const findByEmail = async ({email}) => {
-    return await userRepository.findByEmail({email})
-    // return await userRepository.findUserByEmail({email});
-}
-
-export const findByUserId = async (userId) => {
-    return await userRepository.findUserById(userId);
-}
+import {baseQuerySchema} from "../schemaValidate/query.schema.js";
 
 export const findById = async(req) => {
     validateMongodbId(req.params.id)
@@ -45,9 +37,9 @@ export const respondToFriendRequest = async (req) => {
 
 export const getFriendsList = async (req) => {
     if (!req.user) throw new InvalidCredentialsError()
-    const {search, limit, page} = req.body
+    await baseQuerySchema.validateAsync(req.query)
     const userId = req.user._id
-    return await userRepository.getFriendsList({userId, search, limit, page})
+    return await userRepository.getFriendsList(userId,req.query)
 }
 
 export const getFriendRequests = async (req) => {

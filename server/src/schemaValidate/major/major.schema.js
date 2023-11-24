@@ -1,5 +1,13 @@
 import Joi from 'joi';
 import {isValidMongoId} from "../../utils/global.utils.js";
+
+
+const queryMajorSchema = Joi.object({
+    page: Joi.number().integer().min(1).optional(),
+    limit: Joi.number().integer().min(1).optional(),
+    search: Joi.string().optional(),
+    lang: Joi.string().valid('vi', 'en').optional()
+})
 const createMajorSchema = Joi.object({
     code: Joi.string()
         .required()
@@ -25,6 +33,7 @@ const updateMajorSchema = Joi.object({
 
 
 export {
+    queryMajorSchema,
     createMajorSchema,
     updateMajorSchema
 }
