@@ -7,7 +7,7 @@ import * as crypto from "crypto";
 import {createKeyToken} from "../services/keyToken.service.js";
 import {InternalServerError} from "../core/errors/internalServer.error.js";
 import {createTokenPair} from "../utils/auth.utils.js";
-import {loginSchema, registerSchema, refreshTokenSchema} from "../schemaValidate/auth/auth.schema.js";
+import {loginSchema, registerSchema, refreshTokenSchema} from "../schemaValidate/auth.schema.js";
 
 export const register = async (req, res, next) => {
     try {

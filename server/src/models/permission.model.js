@@ -68,8 +68,6 @@ const ResourcePermissionSchema = new Schema({
 
 ResourcePermissionSchema.plugin(longTimestampsPlugin)
 ResourcePermissionSchema.plugin(removeVersionFieldPlugin)
-// ResourcePermissionSchema.index({resource: 1, group: 1}, {sparse: true, unique: true})
-// ResourcePermissionSchema.index({resource: 1, user: 1}, {sparse: true, unique: true})
 ResourcePermissionSchema.index({resource: 1, actor: 1}, {sparse: true, unique: true})
 
 const Resource = mongoose.model("Resource", ResourceSchema)

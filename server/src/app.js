@@ -18,26 +18,42 @@ import {checkOverload} from "./helpers/check.connect.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const swaggerFile = fs.readFileSync(__dirname + '/swagger.js').toString();
-const swaggerDoc = new DocBlock().parse(swaggerFile, 'js');
+// const swaggerFile = fs.readFileSync(__dirname + '/swagger.js').toString();
+// const swaggerDoc = new DocBlock().parse(swaggerFile, 'js');
 // console.log(swaggerDoc);
 
 const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'UnBlocial API Document',
+            title: 'UTeSocial API Document',
             version: '1.0.0',
             description: '',
         },
+        component: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: "http",
+                    scheme: "bearer",
+                    bearerFormat: "JWT"
+                }
+            }
+        },
+        security: [
+            {
+                bearerAuth: [],
+            }
+        ],
         severs: [
             {
                 api: 'http://localhost:3001/'
             }
-        ]
+        ],
     },
-    apis: ['./routes/auth.js'],
-};
+    apis: ['./routes/*.js']
+
+}
+
 
 
 // const storage = multer.diskStorage({
@@ -54,6 +70,17 @@ const options = {
 // const specs = swaggerJSDoc(options);
 
 const app = express();
+const specs = swaggerJSDoc(options)
+
+export const swaggerDocs = (app, port) => {
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs))
+    // app.get("/docs.json", (req, res) => {
+    //     res.setHeader("Content-Type", "application/json")
+    //     res.send(specs);
+    // })
+    console.log(`Docs available at http://localhost:${port}/docs`);
+}
+
 app
     .use(bodyParser.json())
     .use(helmet())
@@ -63,6 +90,7 @@ app
     .use(helmet.permittedCrossDomainPolicies())
     .use(morgan(config.SERVER.MORGAN_STYLE))
     .use(compression())
+    .use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
     .use(cors())
     .use("/assets", express.static(path.join(__dirname, 'public/assets')))
     .use(config.SERVER.FIRST_SEGMENT_URL, router)

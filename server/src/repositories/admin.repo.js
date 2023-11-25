@@ -129,7 +129,7 @@ const updateAdminGroup = async(gid, updateData) => {
         updateData = cleanNullAndEmptyData(updateData)
         const updatedAdminGroup = await AdminGroup.findByIdAndUpdate(gid, updateData, {new: true})
         if(!updatedAdminGroup) {
-            throw new NotFoundError("Resource not found")
+            throw new NotFoundError()
         }
         return updatedAdminGroup
     } catch (e) {

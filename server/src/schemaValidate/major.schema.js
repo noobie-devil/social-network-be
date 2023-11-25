@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import {isValidMongoId} from "../../utils/global.utils.js";
+import {isValidMongoId} from "../utils/global.utils.js";
 
 
 const queryMajorSchema = Joi.object({

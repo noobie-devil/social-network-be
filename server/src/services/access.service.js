@@ -9,7 +9,7 @@ import {ForbiddenError} from "../core/errors/forbidden.error.js";
 import {InvalidTokenError} from "../core/errors/invalidToken.error.js";
 import jwt from "jsonwebtoken";
 import KeyToken from "../models/keyToken.model.js";
-import {loginSchema, refreshTokenSchema} from "../schemaValidate/auth/auth.schema.js";
+import {loginSchema, refreshTokenSchema} from "../schemaValidate/auth.schema.js";
 
 
 const logout = async({keystore}) => {

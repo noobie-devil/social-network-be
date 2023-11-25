@@ -1,4 +1,4 @@
-import {createMajorSchema, queryMajorSchema, updateMajorSchema} from "../schemaValidate/major/major.schema.js";
+import {createMajorSchema, queryMajorSchema, updateMajorSchema} from "../schemaValidate/major.schema.js";
 import * as majorRepository from '../repositories/major.repo.js';
 import {validateMongodbId} from "../utils/global.utils.js";
 

@@ -44,7 +44,7 @@ const updateEnrollmentYear = async(id, updateData) => {
         await validateEnrollmentYear(updateData)
         const updateObj = await EnrollmentYear.findByIdAndUpdate(id, updateData, { new: true})
         if(!updateObj) {
-            throw new NotFoundError("Resource not found")
+            throw new NotFoundError()
         }
         return updateObj
     } catch (e) {

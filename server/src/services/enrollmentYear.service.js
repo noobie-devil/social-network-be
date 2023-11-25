@@ -2,7 +2,7 @@ import * as enrollmentYearRepo from "../repositories/enrollmentYear.repo.js";
 import {
     createEnrollmentYearSchema,
     updateEnrollmentYearSchema
-} from "../schemaValidate/enrollmentYear/enrollmentYear.schema.js";
+} from "../schemaValidate/enrollmentYear.schema.js";
 import {validateMongodbId} from "../utils/global.utils.js";
 import {baseQuerySchema} from "../schemaValidate/query.schema.js";
 

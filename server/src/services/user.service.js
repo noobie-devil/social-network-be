@@ -3,7 +3,7 @@ import {validateMongodbId} from "../utils/global.utils.js";
 import {User, CollegeStudent,Lecturer, Candidate} from "../models/user.model.js"
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
-import {createUserSchema, respondFriendRequestSchema, updateUserSchema} from "../schemaValidate/user/user.schema.js";
+import {createUserSchema, respondFriendRequestSchema, updateUserSchema} from "../schemaValidate/user.schema.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
 import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";

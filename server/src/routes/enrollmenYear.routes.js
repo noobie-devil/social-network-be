@@ -6,9 +6,11 @@ import {
     updateEnrollmentYear
 } from "../controllers/enrollmentYear.controller.js";
 import {authentication} from "../middlewares/auth.middleware.js";
+import {permissionMiddleware} from "../middlewares/permission.middleware.js";
 
 const enrollmentYearRouter = express.Router()
 enrollmentYearRouter.use(authentication)
+enrollmentYearRouter.use(permissionMiddleware)
 enrollmentYearRouter.post('/', asyncHandler(createEnrollmentYear))
 enrollmentYearRouter.get('/', asyncHandler(getEnrollmentYears))
 enrollmentYearRouter.put('/:id', asyncHandler(updateEnrollmentYear))

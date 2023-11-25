@@ -9,7 +9,17 @@ import adminRouter from "./admin.routes.js";
 import permissionRouter from "./permission.routes.js";
 
 const router = express.Router()
-
+/**
+ * @openai
+ * /login:
+ *  post:
+ *      tag:
+ *          - Login
+ *          description: Login user
+ *          response:
+ *              200:
+ *                  description: Login success
+ */
 router.use('/auth', authRouter)
 router.use('/aauth', adminRouter)
 router.use('/permission', permissionRouter)

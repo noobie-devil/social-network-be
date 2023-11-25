@@ -16,8 +16,7 @@ export const createAdmin = async(req, res, next) => {
 
 export const changeAdminPassword = async(req, res, next) => {
     new SuccessResponse({
-        message: "Updated successfully",
-        data: await adminService.changeAdminPassword(req)
+        message: await adminService.changeAdminPassword(req)
     }).send(res)
 }
 
@@ -29,9 +28,6 @@ export const changeAdminUsername = async(req, res, next) => {
 }
 
 export const deleteAdmin = async(req, res, next) => {
-    console.log(req.route)
-    console.log(req.baseUrl)
-    console.log(req.originalUrl)
 
     new SuccessResponse({
         message: await adminService.deleteAdmin(req)

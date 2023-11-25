@@ -29,7 +29,7 @@ const updateMajor = async (majorId, updateData) => {
         const updateMajor = await Major.findByIdAndUpdate(majorId, updateData, {new: true, }).session(session)
         // const updateMajor = await Major.findOneAndUpdate({_id: majorId}, updateData, {new: true, runValidators: true, context: 'query'})
         if (!updateMajor) {
-            throw new NotFoundError("Resource not found")
+            throw new NotFoundError()
         }
         const error = updateMajor.validateSync()
 
@@ -54,7 +54,7 @@ const deleteMajor = async (majorId) => {
     session.startTransaction()
     try {
         const major = await Major.findById(majorId);
-        if (!major) throw new NotFoundError("Not found resource");
+        if (!major) throw new NotFoundError();
         if (major.faculty) {
             await Faculty.findByIdAndUpdate(
                 major.faculty,

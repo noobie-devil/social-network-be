@@ -101,7 +101,7 @@
 
 /**
  * @swagger
- * /api/v1/register:
+ * /api/v1/auth/register:
  *   post:
  *     summary: Register a new friend
  *     tags: [RegisterSchema]

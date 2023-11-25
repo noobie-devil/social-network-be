@@ -23,7 +23,7 @@ const updateFaculty = async(facultyId, updateData) => {
         updateData = cleanNullAndEmptyData(updateData)
         const updatedFaculty = await Faculty.findByIdAndUpdate(facultyId, updateData, { new: true})
         if(!updatedFaculty) {
-            throw new NotFoundError("Resource not found")
+            throw new NotFoundError()
         }
         return updatedFaculty
     } catch (e) {
@@ -34,7 +34,7 @@ const updateFaculty = async(facultyId, updateData) => {
 const deleteFaculty = async(facultyId) => {
     try {
         const faculty = await Faculty.findById(facultyId)
-        if(!faculty) throw new NotFoundError("Resource not found")
+        if(!faculty) throw new NotFoundError()
         if(faculty.majors.length > 0) {
             throw new ValidationError({
                 message: "Cannot delete! There is an existing reference to this record"

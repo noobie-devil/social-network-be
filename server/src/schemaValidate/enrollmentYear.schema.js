@@ -1,5 +1,5 @@
 import Joi from "joi";
-import {maximumCurrentYear} from "../../utils/global.utils.js";
+import {maximumCurrentYear} from "../utils/global.utils.js";
 
 const createEnrollmentYearSchema = Joi.object({
     name: Joi.string()
