@@ -194,7 +194,8 @@ const findById = async(id) => {
 const create = async (model, payload, session) => {
     const user = await model.create([payload], {session})
     if(model === User) {
-        return user.toPublicData()
+        console.log(user)
+        return user[0].toPublicData()
     }
     return user
 }

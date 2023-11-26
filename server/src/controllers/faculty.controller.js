@@ -1,6 +1,12 @@
 import * as facultyService from '../services/faculty.service.js'
 import {CreatedResponse, OkResponse} from "../core/success/success.response.js";
 
+
+export const getFaculty = async(req, res, next) => {
+    new OkResponse({
+        data: await facultyService.getFaculty(req)
+    }).send(res)
+}
 export const createFaculty = async(req, res, next) => {
     new CreatedResponse({
         data: await facultyService.createFaculty(req)

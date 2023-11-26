@@ -23,7 +23,7 @@ export const userLogin = async(req, res, next) => {
 
 export const userRegister = async(req, res, next) => {
     const response = new CreatedResponse({
-        message: "Registered successfully!",
+        message: "Registered successfully",
         // data: await accessService.registerHandler(req)
         data: await accessService.register(req)
     })

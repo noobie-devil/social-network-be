@@ -7,20 +7,14 @@ import morgan from "morgan";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerJSDoc from "swagger-jsdoc";
-import { parse } from "jest-docblock";
-import DocBlock from "docblock";
 import { fileURLToPath } from "url";
 import config from './utils/global.config.js';
 import { notFound, errorHandler } from './middlewares/index.js';
 import router from './routes/index.js';
 import compression from "compression";
-import {checkOverload} from "./helpers/check.connect.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// const swaggerFile = fs.readFileSync(__dirname + '/swagger.js').toString();
-// const swaggerDoc = new DocBlock().parse(swaggerFile, 'js');
-// console.log(swaggerDoc);
 
 const options = {
     definition: {
@@ -30,7 +24,7 @@ const options = {
             version: '1.0.0',
             description: '',
         },
-        component: {
+        components: {
             securitySchemes: {
                 bearerAuth: {
                     type: "http",
@@ -44,13 +38,13 @@ const options = {
                 bearerAuth: [],
             }
         ],
-        severs: [
+        servers: [
             {
-                api: 'http://localhost:3001/'
+                url: 'http://localhost:3001/'
             }
         ],
     },
-    apis: ['./routes/*.js']
+    apis: [`${__dirname}/swagger.js`]
 
 }
 
@@ -72,15 +66,6 @@ const options = {
 const app = express();
 const specs = swaggerJSDoc(options)
 
-export const swaggerDocs = (app, port) => {
-    app.use('/docs', swaggerUi.serve, swaggerUi.setup(specs))
-    // app.get("/docs.json", (req, res) => {
-    //     res.setHeader("Content-Type", "application/json")
-    //     res.send(specs);
-    // })
-    console.log(`Docs available at http://localhost:${port}/docs`);
-}
-
 app
     .use(bodyParser.json())
     .use(helmet())
@@ -90,12 +75,13 @@ app
     .use(helmet.permittedCrossDomainPolicies())
     .use(morgan(config.SERVER.MORGAN_STYLE))
     .use(compression())
-    .use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
     .use(cors())
     .use("/assets", express.static(path.join(__dirname, 'public/assets')))
     .use(config.SERVER.FIRST_SEGMENT_URL, router)
+    .use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
     // .use('/api-doc', swaggerUi.serve, swaggerUi.setup(specs))
     .use(notFound)
-    .use(errorHandler);
+    .use(errorHandler)
+
 // checkOverload()
 export default app;

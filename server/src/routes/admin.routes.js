@@ -20,9 +20,9 @@ adminRouter.use(authentication)
 
 const adminSegmentRouter = express.Router()
 adminSegmentRouter.use(permissionMiddleware)
-adminSegmentRouter.get('/admin', asyncHandler(getAdmin))
-adminSegmentRouter.post('/admin', asyncHandler(createAdmin))
-adminSegmentRouter.delete('/admin/:adminId', asyncHandler(deleteAdmin))
+adminSegmentRouter.get('/', asyncHandler(getAdmin))
+adminSegmentRouter.post('/', asyncHandler(createAdmin))
+adminSegmentRouter.delete('/:adminId', asyncHandler(deleteAdmin))
 
 adminSegmentRouter.put('/:adminId/change-password', asyncHandler(changeAdminPassword))
 adminSegmentRouter.put('/:adminId/change-username', asyncHandler(changeAdminUsername))

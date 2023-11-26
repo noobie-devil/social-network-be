@@ -9,12 +9,14 @@ const FacultySchema = new Schema({
         type: String,
         required: true,
     },
-    majors: [
-        {
-            type: mongoose.Types.ObjectId,
-            ref: "Major"
-        }
-    ]
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    }
 })
 
 FacultySchema.index({ code: 1, name: 1}, {

@@ -7,6 +7,7 @@ import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugin
 const AdminSchema = new Schema({
     username: {
         type: String,
+        default: ""
     },
     email: {
         type: String,
@@ -31,6 +32,14 @@ const AdminSchema = new Schema({
     group: {
         type: Schema.Types.ObjectId,
         ref: 'AdminGroup'
+    },
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
     }
 },{
     timestamps: true
@@ -40,7 +49,7 @@ AdminSchema.plugin(longTimestampsPlugin)
 AdminSchema.plugin(removeVersionFieldPlugin)
 
 AdminSchema.pre('save', async function(next) {
-    if(this.isNew && this.username === "") {
+    if(this.isNew && !this.username || this.username === "") {
         const emailSplit = this.email.split('@');
         this.username = emailSplit[0]
     }

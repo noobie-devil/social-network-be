@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import {ValidationError} from "../core/errors/validation.error.js";
 import {cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
-import {Admin} from "../models/admin.model.js";
+import {Admin, AdminGroup} from "../models/admin.model.js";
 
 
 const createResource = async(payload, session = null) => {
@@ -16,7 +16,11 @@ const createResource = async(payload, session = null) => {
     if(session) {
         opts = {session}
     }
-    return await Resource.create([payload], opts)
+    return await new Resource(payload, opts)
+        .save()
+    // return await Resource.create([payload], opts)
+        .then(value => value.populate([{path: 'createdBy', select: 'username -_id'}, { path: 'updatedBy', select: 'username -_id'}]))
+
 }
 const getResource = async({search = "", limit = 20, page = 1}) => {
     const skip = (page - 1) * limit
@@ -24,6 +28,14 @@ const getResource = async({search = "", limit = 20, page = 1}) => {
         resourceName: new RegExp(search, 'i')
     }
     const resources = await Resource.find(filter)
+        .populate({
+        path: 'createdBy',
+        select: 'username -_id'
+        })
+        .populate({
+            path: 'updatedBy',
+            select: 'username -_id'
+        })
         .limit(limit)
         .skip(skip)
         .lean()
@@ -37,6 +49,14 @@ const getResource = async({search = "", limit = 20, page = 1}) => {
 const updateResource = async(resId, payload) => {
     payload = cleanNullAndEmptyData(payload)
     const updateResource = await Resource.findByIdAndUpdate(resId, payload, {new: true})
+        .populate({
+            path: 'createdBy',
+            select: 'username -_id'
+        })
+        .populate({
+            path: 'updatedBy',
+            select: 'username -_id'
+        })
     if(!updateResource) {
         throw new NotFoundError()
     }
@@ -72,11 +92,17 @@ const getPermissionsByAdminId = async(aid, {limit = 20, page = 1}) => {
         ]
     }
     const permissions = await ResourcePermission.find(query)
-        .populate({
+        .populate([{
             path: "resource",
-            select: "resourceName"
-        })
-        .select("operation resource.resourceName")
+            select: "resourceName othersPermission"
+        },{
+            path: "updatedBy",
+            select: "username -_id"
+        },{
+            path: "createdBy",
+            select: "username -_id"
+        }])
+        .select("_id operation resource")
         .skip(skip)
         .limit(limit)
         .lean()
@@ -96,11 +122,17 @@ const getResourcePermission = async({search = "", limit = 20, page = 1, actorTyp
         }
     }
     const resourcePermissions = await ResourcePermission.find(query)
-        .populate({
+        .populate([{
             path: "resource",
             match: {resourceName: new RegExp(search, "i")},
-            select: "resourceName"
-        })
+            select: "resourceName othersPermission"
+        },{
+            path: "updatedBy",
+            select: "username -_id"
+        },{
+            path: "createdBy",
+            select: "username -_id"
+        }])
         .limit(limit)
         .skip(skip)
         .lean()
@@ -113,6 +145,13 @@ const getResourcePermission = async({search = "", limit = 20, page = 1, actorTyp
 
 const createResourcePermission = async(payload, session = null) => {
     const {resource, actor, actorType} = payload
+    if(actorType === "Admin") {
+        const existingAdmin = await Admin.findById(actor)
+        if(!existingAdmin) throw new NotFoundError()
+    } else {
+        const existingAdminGroup = await AdminGroup.findById(actor)
+        if(!existingAdminGroup) throw new NotFoundError()
+    }
     const existingResourcePermission = await ResourcePermission.findOne({ resource, actor, actorType })
     if(existingResourcePermission) throw new ValidationError({
         message: "Already exists this resource permission",
@@ -122,13 +161,26 @@ const createResourcePermission = async(payload, session = null) => {
     if(session) {
         opts = {session}
     }
-    return await ResourcePermission.create([payload], opts)
+    return await new ResourcePermission(payload)
+        .save(opts)
+        .then(value => value.populate([
+            {path: "resource", select: "resourceName othersPermission"},
+            {path: "updatedBy", select: "username -_id"},
+            {path: "updatedBy", select: "username -_id"},
+        ]))
 }
 
 // Only allow to update operations number in resource permission for actor (admin, adminGroup)
 const updatePermissionForActor = async(permissionId, payload) => {
     payload = cleanNullAndEmptyData(payload)
     const updated = await ResourcePermission.findByIdAndUpdate(permissionId, payload, {new: true})
+        .populate([{
+            path: "updatedBy",
+            select: "username -_id"
+        },{
+            path: "createdBy",
+            select: "username -_id"
+        }])
     if(!updated) {
         throw new NotFoundError()
     }
@@ -179,7 +231,14 @@ const createNewPermission = async({resourceName, othersPermission = 4, actor, ac
 }
 
 const findPermissionByResourceName = async (resourceName) => {
-    return await Resource.findOne({resourceName}).exec()
+    return await Resource.findOne({resourceName})
+        .populate([{
+            path: "updatedBy",
+            select: "username -_id"
+        },{
+            path: "createdBy",
+            select: "username -_id"
+        }]).exec()
 }
 
 const checkAdminHasPermission = async(aid, gid, resId) => {

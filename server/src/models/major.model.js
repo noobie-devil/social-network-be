@@ -28,6 +28,14 @@ const MajorSchema = new Schema({
     faculty: {
         type: mongoose.Types.ObjectId,
         ref: "Faculty"
+    },
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
     }
 },
 {

@@ -13,7 +13,6 @@ export const respondToFriendRequest = async(req, res, next) => {
     }).send(res)
 }
 
-
 export const getFriendsList = async(req, res, next) => {
     new OkResponse({
         data: await userService.getFriendsList(req)

@@ -31,7 +31,7 @@ const refreshHandler = async () => {
         return accessToken
     } catch (error) {
         console.error('Error refreshing access token:', error.message)
-        throw error
+        return null
     }
 }
 
@@ -63,6 +63,10 @@ const handlebarOptions = {
 
 export const sendMail = async({to, subject, title, body}) => {
     const accessToken = await getAccessToken()
+    if(accessToken === null) {
+        console.log("Cannot get access token")
+        return
+    }
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {

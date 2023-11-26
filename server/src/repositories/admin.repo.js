@@ -10,6 +10,14 @@ import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 
 const findAdminByEmail = async(email) => {
     return await Admin.findOne({email})
+        .populate({
+            path: 'createdBy',
+            select: 'username -_id'
+        })
+        .populate({
+            path: 'updatedBy',
+            select: 'username -_id'
+        })
         // .select(unSelectUserFieldToPublic({ timestamps: true}))
         .exec()
 }
@@ -19,6 +27,14 @@ const getAdmin = async({search = "", limit = 20, page = 1}) => {
         $or: [{ username: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }]
     }
     const admins = await Admin.find(filter)
+        .populate({
+            path: 'createdBy',
+            select: 'username -_id'
+        })
+        .populate({
+            path: 'updatedBy',
+            select: 'username -_id'
+        })
         .limit(limit)
         .skip(skip)
         .lean()
@@ -35,6 +51,14 @@ const getAdminGroup = async({search = "", limit = 20, page = 1}) => {
         groupName: new RegExp(search, 'i')
     }
     const groups = await AdminGroup.find(filter)
+        .populate({
+            path: 'createdBy',
+            select: 'username -_id'
+        })
+        .populate({
+            path: 'updatedBy',
+            select: 'username -_id'
+        })
         .limit(limit)
         .skip(skip)
         .lean()
@@ -53,7 +77,10 @@ const createAdmin = async(payload) => {
             message: 'Already exists this email',
             statusCode: 409
         })
-        return await Admin.create(payload)
+        return await new Admin(payload)
+            .save()
+            .then(value => value.populate([{path: 'createdBy', select: 'username -_id'}, { path: 'updatedBy', select: 'username -_id'}]))
+        // return await Admin.create(payload)
     } catch (e) {
         throw e
     }
@@ -117,7 +144,9 @@ const createAdminGroup = async(payload) => {
             message: 'Already exists this group name',
             statusCode: 409
         })
-        return await AdminGroup.create(payload)
+        return await new AdminGroup(payload)
+            .save()
+            .then(value => value.populate([{path: 'createdBy', select: 'username -_id'}, { path: 'updatedBy', select: 'username -_id'}]))
     } catch (e) {
         throw e
     }
@@ -128,6 +157,14 @@ const updateAdminGroup = async(gid, updateData) => {
     try {
         updateData = cleanNullAndEmptyData(updateData)
         const updatedAdminGroup = await AdminGroup.findByIdAndUpdate(gid, updateData, {new: true})
+            .populate({
+                path: 'createdBy',
+                select: 'username -_id'
+            })
+            .populate({
+                path: 'updatedBy',
+                select: 'username -_id'
+            })
         if(!updatedAdminGroup) {
             throw new NotFoundError()
         }
@@ -161,7 +198,7 @@ const deleteAdminGroup = async(gid) => {
 }
 
 const updateGroupForAdmin = async({aid, gid, updatedBy}, shouldRemove) => {
-    const existingAdmin = await Admin.findById(aid)
+    let existingAdmin = await Admin.findById(aid)
     if(!existingAdmin) throw new NotFoundError("Not found admin")
     const existingGroup = await AdminGroup.findById(gid)
     if(!existingGroup) throw new NotFoundError("Not found group")
@@ -182,7 +219,8 @@ const updateGroupForAdmin = async({aid, gid, updatedBy}, shouldRemove) => {
             }
             existingGroup.updatedBy = updatedBy
             await existingGroup.save({session})
-            await existingAdmin.save({session})
+            existingAdmin = await existingAdmin.save({session})
+                .then(value => value.populate([{path: 'createdBy', select: 'username -_id'}, { path: 'updatedBy', select: 'username -_id'}]))
             await session.commitTransaction()
             return existingAdmin
         } catch (e) {
