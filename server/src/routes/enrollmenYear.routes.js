@@ -9,10 +9,10 @@ import {authentication} from "../middlewares/auth.middleware.js";
 import {permissionMiddleware} from "../middlewares/permission.middleware.js";
 
 const enrollmentYearRouter = express.Router()
+enrollmentYearRouter.get('/', asyncHandler(getEnrollmentYears))
 enrollmentYearRouter.use(authentication)
 enrollmentYearRouter.use(permissionMiddleware)
 enrollmentYearRouter.post('/', asyncHandler(createEnrollmentYear))
-enrollmentYearRouter.get('/', asyncHandler(getEnrollmentYears))
 enrollmentYearRouter.put('/:id', asyncHandler(updateEnrollmentYear))
 enrollmentYearRouter.delete('/:id', asyncHandler(deleteEnrollmentYear))
 export default enrollmentYearRouter

@@ -100,6 +100,19 @@
  *          properties:
  *              username:
  *                  type: string
+ *      EnrollmentYearDataResponse:
+ *          type: object
+ *          properties:
+ *              _id:
+ *                  type: string
+ *              name:
+ *                  type: string
+ *              startYear:
+ *                  type: integer
+ *              createdBy:
+ *                  $ref: '#components/schemas/UpdatedByObject'
+ *              updatedBy:
+ *                  $ref: '#components/schemas/UpdatedByObject'
  *      MajorDataResponse:
  *          type: object
  *          properties:
@@ -233,6 +246,10 @@
  *                  type: integer
  *              updatedAt:
  *                  type: integer
+ *              createdBy:
+ *                  $ref: '#components/schemas/UpdatedByObject'
+ *              updatedBy:
+ *                  $ref: '#components/schemas/UpdatedByObject'
  *      UserDataResponse:
  *          type: object
  *          properties:
@@ -1992,4 +2009,212 @@
  *      - bearerAuth: []
  */
 
+/**
+ *  @swagger
+ *  tags:
+ *      name: Enrollment Year
+ *      description: The Enrollment Year Management API
+ */
 
+/**
+ * @swagger
+ * /api/v1/enrollment-year:
+ *  get:
+ *    summary: Get list enrollment years
+ *    tags: [Enrollment Year]
+ *    description: ''
+ *    parameters:
+ *     - name: page
+ *       in: query
+ *       description: The number of items to skip before starting to collect the result set
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: limit
+ *       in: query
+ *       description: The number of items to return.
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: search
+ *       in: query
+ *       description: The keyword used to search
+ *       required: false
+ *       schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *                              properties:
+ *                                  enrollmentYears:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: '#components/schemas/EnrollmentYearDataResponse'
+ *                                  totalCount:
+ *                                      type: integer
+ *      400:
+ *          description: Invalid input
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/enrollment-year:
+ *  post:
+ *    summary: Create new enrollment year
+ *    tags: [Enrollment Year]
+ *    description: ''
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      name:
+ *                          type: string
+ *                      startYear:
+ *                          type: integer
+ *    responses:
+ *      201:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              $ref: '#components/schemas/EnrollmentYearDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/enrollment-year/{id}:
+ *  put:
+ *    summary: Update enrollment year
+ *    tags: [Enrollment Year]
+ *    description: ''
+ *    parameters:
+ *      - name: id
+ *        in: path
+ *        description: ID of enrollment year to update
+ *        required: true
+ *        schema:
+ *          type: string
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      name:
+ *                          type: string
+ *                      startYear:
+ *                          type: integer
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              $ref: '#components/schemas/EnrollmentYearDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      404:
+ *          description: Resource not found
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/enrollment-year/{id}:
+ *  delete:
+ *    summary: Remove enrollment year
+ *    tags: [Enrollment Year]
+ *    description: ''
+ *    parameters:
+ *      - name: id
+ *        in: path
+ *        description: ID of enrollment year to delete
+ *        required: true
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */

@@ -35,6 +35,7 @@ const getAdmin = async({search = "", limit = 20, page = 1}) => {
             path: 'updatedBy',
             select: 'username -_id'
         })
+        .select(unSelectUserFieldToPublic({ timestamps: true}))
         .limit(limit)
         .skip(skip)
         .lean()
@@ -70,21 +71,24 @@ const getAdminGroup = async({search = "", limit = 20, page = 1}) => {
 }
 
 const createAdmin = async(payload) => {
-    try {
-        const {email} = payload
-        const existingAdmin = await Admin.findOne({email})
-        if(existingAdmin) throw new ValidationError({
-            message: 'Already exists this email',
-            statusCode: 409
-        })
-        return await new Admin(payload)
-            .save()
-            .then(value => value.populate([{path: 'createdBy', select: 'username -_id'}, { path: 'updatedBy', select: 'username -_id'}]))
-        // return await Admin.create(payload)
-    } catch (e) {
-        throw e
-    }
+    const {email} = payload
+    const existingAdmin = await Admin.findOne({email})
+    if(existingAdmin) throw new ValidationError({
+        message: 'Already exists this email',
+        statusCode: 409
+    })
 
+    return await new Admin(payload)
+        .save()
+        .then(async value => {
+            await value.populate([
+                {path: "createdBy", select: "username -_id"},
+                {path: "updatedBy", select: "username -_id"}
+            ])
+            const valueObject = value.toObject()
+            delete valueObject.password
+            return valueObject
+        })
 }
 
 const changePassword = async({currentPassword, newPassword}, aid) => {
@@ -182,7 +186,7 @@ const deleteAdminGroup = async(gid) => {
         const bulkOps = [{
             updateMany: {
                 filter: { group: gid },
-                update: { $pull: { group: gid }}
+                update: { $unset: { group: 1 }}
             }
         }]
         await Admin.bulkWrite(bulkOps, {session})
@@ -202,7 +206,7 @@ const updateGroupForAdmin = async({aid, gid, updatedBy}, shouldRemove) => {
     if(!existingAdmin) throw new NotFoundError("Not found admin")
     const existingGroup = await AdminGroup.findById(gid)
     if(!existingGroup) throw new NotFoundError("Not found group")
-    if(!shouldRemove && existingAdmin.group.toString() === gid) {
+    if(!shouldRemove && existingAdmin.group && existingAdmin.group.toString() === gid) {
         throw new BadRequestError()
     } else if (shouldRemove && existingAdmin.group && existingAdmin.group.toString() !== gid) {
         throw new BadRequestError()

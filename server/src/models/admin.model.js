@@ -48,6 +48,16 @@ const AdminSchema = new Schema({
 AdminSchema.plugin(longTimestampsPlugin)
 AdminSchema.plugin(removeVersionFieldPlugin)
 
+AdminSchema.methods.toPublicData = function(timestamps = false) {
+    const obj = this.toObject()
+    delete obj.password
+    if(!timestamps) {
+        delete obj.updatedAt
+        delete obj.createdAt
+    }
+    return obj
+}
+
 AdminSchema.pre('save', async function(next) {
     if(this.isNew && !this.username || this.username === "") {
         const emailSplit = this.email.split('@');

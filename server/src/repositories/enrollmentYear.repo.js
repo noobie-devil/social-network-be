@@ -5,12 +5,13 @@ import {NotFoundError} from "../core/errors/notFound.error.js";
 
 
 const createEnrollmentYear = async (payload) => {
-    try {
-        await validateEnrollmentYear(payload)
-        return await EnrollmentYear.create(payload)
-    } catch (e) {
-        throw e
-    }
+    await validateEnrollmentYear(payload)
+    return await new EnrollmentYear(payload)
+        .save()
+        .then(value => value.populate([
+            { path: "createdBy", select: "username -_id"},
+            { path: "updatedBy", select: "username -_id"}
+        ]))
 }
 
 const validateEnrollmentYear = async(data) => {
@@ -28,28 +29,24 @@ const validateEnrollmentYear = async(data) => {
 }
 
 const deleteEnrollmentYear = async(id) => {
-    try {
-        const deleteResult = await EnrollmentYear.findByIdAndDelete(id)
-        if(!deleteResult) {
-            throw new NotFoundError()
-        }
-        return "Delete success"
-    } catch (e) {
-        throw e
+    const deleteResult = await EnrollmentYear.findByIdAndDelete(id)
+    if(!deleteResult) {
+        throw new NotFoundError()
     }
+    return "Delete success"
 }
 
 const updateEnrollmentYear = async(id, updateData) => {
-    try {
-        await validateEnrollmentYear(updateData)
-        const updateObj = await EnrollmentYear.findByIdAndUpdate(id, updateData, { new: true})
-        if(!updateObj) {
-            throw new NotFoundError()
-        }
-        return updateObj
-    } catch (e) {
-        throw e;
+    await validateEnrollmentYear(updateData)
+    const updateObj = await EnrollmentYear.findByIdAndUpdate(id, updateData, { new: true})
+        .populate([
+            { path: "createdBy", select: "username -_id"},
+            { path: "updatedBy", select: "username -_id"}
+        ])
+    if(!updateObj) {
+        throw new NotFoundError()
     }
+    return updateObj
 }
 
 const getEnrollmentYears = async ({search = "", limit = 20, page = 1}) => {
@@ -63,15 +60,24 @@ const getEnrollmentYears = async ({search = "", limit = 20, page = 1}) => {
         }
         sortCondition = { score: {$meta: 'textScore'}}
     }
-    return await EnrollmentYear.find(
+    const enrollmentYears = await EnrollmentYear.find(
         query,
     )
+        .populate([
+            { path: "createdBy", select: "username -_id"},
+            { path: "updatedBy", select: "username -_id"}
+        ])
         .select(getUnSelectObjFromSelectArr(exclude))
         .sort(sortCondition)
         .skip(skip)
         .limit(limit)
         .lean()
         .exec()
+    const totalCount = await EnrollmentYear.countDocuments(query)
+    return {
+        enrollmentYears,
+        totalCount
+    }
 }
 
 export {

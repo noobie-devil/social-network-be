@@ -11,6 +11,14 @@ const EnrollmentYearSchema = new Schema({
         required: true,
         unique: true
     },
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    },
+    updatedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "Admin"
+    }
 })
 
 EnrollmentYearSchema.index({startYear: 1});

@@ -8,8 +8,9 @@ import {cleanNullAndEmptyArray} from "../utils/lodash.utils.js";
 
 const formatDataRecursively = (input, parentKey = '') => {
     const formattedData = {};
+    console.log(input)
     for (let key in input) {
-        if (typeof input[key] === 'object') {
+        if (typeof input[key] === 'object' && input[key].constructor.name !== "ObjectId") {
             const nestedData = formatDataRecursively(input[key], `${parentKey}${key}.`);
             Object.assign(formattedData, nestedData);
         } else {
@@ -25,16 +26,14 @@ const updateMajor = async (majorId, updateData) => {
     try {
         updateData = cleanNullAndEmptyArray(updateData)
         updateData = formatDataRecursively(updateData)
+        console.log(updateData)
         const updateMajor = await Major.findByIdAndUpdate(majorId, updateData, {new: true, })
-            .populate({path: 'faculty', select: "code name"})
-            .populate([{
-                path: "updatedBy",
-                select: "username -_id"
-            },{
-                path: "createdBy",
-                select: "username -_id"
-            }])
             .session(session)
+            .populate([
+                {path: 'faculty', select: "code name"},
+                {path: "updatedBy", select: "username -_id"},
+                {path: "createdBy", select: "username -_id"}
+            ])
         // const updateMajor = await Major.findOneAndUpdate({_id: majorId}, updateData, {new: true, runValidators: true, context: 'query'})
         if (!updateMajor) {
             throw new NotFoundError()
