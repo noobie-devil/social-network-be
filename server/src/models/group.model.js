@@ -1,5 +1,5 @@
-import {Schema} from "mongoose";
-import {longTimestampsPlugin} from "../database/plugins.js";
+import mongoose, {Schema} from "mongoose";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
 const GroupSchema = new Schema(
     {
@@ -13,19 +13,37 @@ const GroupSchema = new Schema(
                 ref: 'User'
             }
         ],
-        admin: {
+        hostGroup: {
             type: Schema.Types.ObjectId,
             ref: 'User',
             required: true
         },
-        public_policies: {
+        admins: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User"
+            }
+        ],
+        privacyMode: {
+            type: Number,
+            enum: [0, 1],
+            default: 1
+        },
+        description: {
             type: String,
-            enum: ["Public", "Private"],
-            default: "Public"
+        },
+        moderationMode: {
+            type: Boolean,
+            default: false
         }
+    },
+    {
+        timestamps: true
     }
 );
 
+GroupSchema.plugin(longTimestampsPlugin)
+GroupSchema.plugin(removeVersionFieldPlugin)
 GroupSchema.index({ name: 1});
 const Group = mongoose.model('Group', GroupSchema);
 

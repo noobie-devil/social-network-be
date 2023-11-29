@@ -1,4 +1,5 @@
 import mongoose, {Schema} from "mongoose";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
 const FacultySchema = new Schema({
     code: {
@@ -19,6 +20,9 @@ const FacultySchema = new Schema({
     }
 })
 
+
+FacultySchema.plugin(longTimestampsPlugin)
+FacultySchema.plugin(removeVersionFieldPlugin)
 FacultySchema.index({ code: 1, name: 1}, {
     unique: true
 })

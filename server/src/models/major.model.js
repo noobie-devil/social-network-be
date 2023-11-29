@@ -46,8 +46,6 @@ const MajorSchema = new Schema({
 MajorSchema.plugin(longTimestampsPlugin)
 MajorSchema.plugin(removeVersionFieldPlugin)
 MajorSchema.pre('findOneAndUpdate', function(next) {
-    console.log(this.getUpdate())
-    console.log(this.name)
     this.options.runValidators = true
     this.options.validateModifiedOnly
     next()
@@ -62,7 +60,6 @@ MajorSchema.pre('update', function (next) {
 })
 MajorSchema.path('name').validate(function (value) {
     const valueArray = Array.from(value.values())
-    console.log("run")
     return new Set(valueArray).size === valueArray.length
 }, 'Values in name must be unique')
 

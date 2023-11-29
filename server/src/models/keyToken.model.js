@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
 const KeyTokenSchema = new Schema({
     user: {
@@ -29,6 +30,8 @@ const KeyTokenSchema = new Schema({
     timestamps: true
 });
 
+KeyTokenSchema.plugin(longTimestampsPlugin)
+KeyTokenSchema.plugin(removeVersionFieldPlugin)
 const KeyToken = mongoose.model("KeyToken", KeyTokenSchema);
 
 export default KeyToken;

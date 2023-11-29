@@ -1,12 +1,15 @@
-import mongoose, { Schema } from "mongoose";
-import {longTimestampsPlugin} from "../database/plugins.js";
+import mongoose, {Schema} from "mongoose";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
 const PostSchema = new Schema(
     {
-        user: {
+        userAuthor: {
             type: Schema.Types.ObjectId,
             ref: 'User',
-            required: true
+        },
+        userPageAuthor: {
+            type: Schema.Types.ObjectId,
+            ref: "UserPage",
         },
         group: {
             type: Schema.Types.ObjectId,
@@ -17,26 +20,50 @@ const PostSchema = new Schema(
         },
         images: [
             {
-                image: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'ImageSchema'
-                }
+                type: Schema.Types.ObjectId,
+                ref: "Image"
             }
         ],
         likeCounts: {
             type: Number,
+            default: 0
         },
-        refPost: {
+        likes: [
+            {
+                userType: {
+                    type: String,
+                    enum: ["User", "UserPage"],
+                    required: true
+                },
+                userId : {
+                    type: Schema.Types.ObjectId
+                }
+            }
+        ],
+        sharedPost: {
             type: Schema.Types.ObjectId,
             ref: 'Post'
+        },
+        privacyMode: {
+            type: Number,
+            enum: [0, 1, 2],
+            default: 1
+        },
+        tags: [
+            {type: String}
+        ],
+        shares: {
+            type: Number,
+            default: 0
         }
     },
     {
         timestamps: true
     }
 );
+PostSchema.plugin(removeVersionFieldPlugin)
 PostSchema.plugin(longTimestampsPlugin);
-PostSchema.index({ user: 1, group: 1, createdAt: -1}, {
+PostSchema.index({user: 1, group: 1, createdAt: -1}, {
     sparse: true,
     unique: true
 });

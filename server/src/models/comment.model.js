@@ -1,12 +1,12 @@
 import mongoose, {Schema} from "mongoose";
-import {longTimestampsPlugin} from "../database/plugins.js";
+import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
 const CommentSchema = new Schema({
     text: {
         type: String,
         required: true,
     },
-    image: [
+    images: [
         {
             type: Schema.Types.ObjectId,
             ref: 'Image'
@@ -19,21 +19,26 @@ const CommentSchema = new Schema({
     },
     parent: {
         type: Schema.Types.ObjectId,
-        ref: 'Comment',
-        default: null
+        ref: 'Comment'
     },
     post: {
         type: Schema.Types.ObjectId,
         ref: 'Post',
         required: true
-    }
+    },
+    childComments: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Comment"
+        }
+    ]
 },
     {
         timestamps: true
     }
 );
-CommentSchema.plugin(longTimestampsPlugin);
-CommentSchema.index({ user: 1, parent: 1, post: 1, createdAt: -1});
+CommentSchema.plugin(longTimestampsPlugin)
+CommentSchema.plugin(removeVersionFieldPlugin)
 const Comment = mongoose.model('Comment', CommentSchema);
 
 module.exports = {

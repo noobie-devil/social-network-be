@@ -53,8 +53,8 @@ const UserSchema = new Schema({
         required: true
     },
     avatar: {
-        type: String,
-        default: "",
+        type: Schema.Types.ObjectId,
+        ref: "Image"
     },
     status: {
         type: Number,
