@@ -1,0 +1,124 @@
+import multer from "multer";
+import sharp from "sharp";
+import ffmpeg from 'fluent-ffmpeg'
+import * as path from "path";
+import { fileURLToPath} from "url";
+import * as fs from "fs";
+import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
+import {UnsupportedFileFormatError} from "../core/errors/unsupportedFileFormat.error.js";
+
+const ffmpegPath = ffmpegInstaller.path
+ffmpeg.setFfmpegPath(ffmpegPath);
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename);
+const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpeg'];
+
+const multerStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, "../public/uploadedResources"));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+        let extension = null
+        if(allowedImageTypes.includes(file.mimetype)) {
+            extension = ".jpeg"
+        } else if(file.originalname.match(/\.(mp4|avi|mkv)$/)) {
+            extension = ".mp4"
+        }
+        cb(null, file.fieldname + "-" + uniqueSuffix + extension);
+    }
+})
+
+const multerFilter = (req, file, cb) => {
+    if(allowedImageTypes.includes(file.mimetype) || file.originalname.match(/\.(mp4|avi|mkv)$/)) {
+        cb(null, true)
+    } else {
+        cb(new UnsupportedFileFormatError(), false)
+    }
+}
+
+export const uploadAttachments = multer({
+    storage: multerStorage,
+    fileFilter: multerFilter,
+    limit: {fieldSize: 2000000}
+})
+
+const checkVideoFileSize = async(filePath) => {
+    const stats = fs.statSync(filePath)
+    const fileSizeInBytes = stats.size
+    console.log(`Video file size: ${fileSizeInBytes} bytes`);
+}
+
+export const imageResize = async(req, res, next) => {
+    if(!req.files) return next();
+    await Promise.all(
+        req.files.images.map(async (file) => {
+            if(allowedImageTypes.includes(file.mimetype)) {
+                console.log("imageResize")
+                await checkVideoFileSize(file.path)
+                await sharp(file.path).resize(300, 300).toFormat('jpeg').jpeg({
+                    quality: 90
+                }).toFile(`${file.destination}/images/${file.filename}`);
+                fs.unlinkSync(`${file.destination}/images/${file.filename}`);
+            }
+        })
+    );
+    next();
+}
+
+
+export const videoCompression = async(req, res, next) => {
+    if(!req.files) return next()
+    console.log("video compression: ")
+    console.log(req.files.videos)
+    await Promise.all(
+        req.files.videos.map(async (file) => {
+            if(file.originalname.match(/\.(mp4|avi|mkv)$/)) {
+                console.log(`Checking input file sizes in bytes`)
+                await checkVideoFileSize(file.path)
+                console.log(file)
+                const ffmpegProcess = ffmpeg()
+                    .input(file.path)
+                    .output(`${file.destination}/videos/${file.filename}`)
+                    .videoCodec('libx264')
+                    .audioCodec('aac')
+                    .videoBitrate(`1k`)
+                    .autopad()
+                    // .on("end", async function () {
+                    //     console.log(`Video compression with file + ${file.path} completed`)
+                    //     console.log(`Checking output filesize in bytes`)
+                    //     await checkVideoFileSize(`${file.destination}/videos/${req.filename}`)
+                    //     fs.unlinkSync(`${file.destination}/videos/${req.filename}`)
+                    //     resolve()
+                    // })
+                const { code, signal } = await new Promise((resolve, reject) => {
+                    ffmpegProcess.on("end", async function () {
+                        console.log(`Video compression with file ${file.path} completed`);
+                        console.log(`Checking output filesize in bytes`);
+                        await checkVideoFileSize(`${file.destination}/videos/${file.filename}`);
+                        // Remove the original file after compression
+                        // await fs.unlinkSync(`${file.destination}/videos/${file.filename}`);
+                        resolve({ code: 0, signal: null });
+                    });
+
+                    ffmpegProcess.on("error", function (err) {
+                        console.error("Error during ffmpeg processing:", err);
+                        reject({ code: 1, signal: err });
+                    });
+
+                    console.log("Starting ffmpeg process");
+                    ffmpegProcess.run();
+                });
+
+                if (code === 0) {
+                    console.log("ffmpeg process completed successfully");
+                } else {
+                    console.error(`ffmpeg process failed with code ${code} and signal ${signal}`);
+                }
+                console.log("wtffff")
+            }
+        })
+    )
+    next()
+}

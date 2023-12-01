@@ -2,12 +2,12 @@ export const longTimestampsPlugin = function(schema, options) {
     schema.add({
         createdAt: {
             type: Number,
-            default: Date,
+            default: Date.now,
             set: dateToNumber,
         },
         updatedAt: {
             type: Number,
-            default: Date,
+            default: Date.now,
             set: dateToNumber,
         },
     });
