@@ -44,10 +44,10 @@ export const uploadAttachments = multer({
     limit: {fieldSize: 2000000}
 })
 
-const checkVideoFileSize = async(filePath) => {
+const checkFileSize = async(filePath) => {
     const stats = fs.statSync(filePath)
     const fileSizeInBytes = stats.size
-    console.log(`Video file size: ${fileSizeInBytes} bytes`);
+    console.log(`File size: ${fileSizeInBytes} bytes`);
 }
 
 export const imageResize = async(req, res, next) => {
@@ -55,8 +55,7 @@ export const imageResize = async(req, res, next) => {
     await Promise.all(
         req.files.images.map(async (file) => {
             if(allowedImageTypes.includes(file.mimetype)) {
-                console.log("imageResize")
-                await checkVideoFileSize(file.path)
+                await checkFileSize(file.path)
                 await sharp(file.path).resize(300, 300).toFormat('jpeg').jpeg({
                     quality: 90
                 }).toFile(`${file.destination}/images/${file.filename}`);
@@ -76,7 +75,7 @@ export const videoCompression = async(req, res, next) => {
         req.files.videos.map(async (file) => {
             if(file.originalname.match(/\.(mp4|avi|mkv)$/)) {
                 console.log(`Checking input file sizes in bytes`)
-                await checkVideoFileSize(file.path)
+                await checkFileSize(file.path)
                 console.log(file)
                 const ffmpegProcess = ffmpeg()
                     .input(file.path)
@@ -85,18 +84,11 @@ export const videoCompression = async(req, res, next) => {
                     .audioCodec('aac')
                     .videoBitrate(`1k`)
                     .autopad()
-                    // .on("end", async function () {
-                    //     console.log(`Video compression with file + ${file.path} completed`)
-                    //     console.log(`Checking output filesize in bytes`)
-                    //     await checkVideoFileSize(`${file.destination}/videos/${req.filename}`)
-                    //     fs.unlinkSync(`${file.destination}/videos/${req.filename}`)
-                    //     resolve()
-                    // })
                 const { code, signal } = await new Promise((resolve, reject) => {
                     ffmpegProcess.on("end", async function () {
                         console.log(`Video compression with file ${file.path} completed`);
                         console.log(`Checking output filesize in bytes`);
-                        await checkVideoFileSize(`${file.destination}/videos/${file.filename}`);
+                        await checkFileSize(`${file.destination}/videos/${file.filename}`);
                         // Remove the original file after compression
                         // await fs.unlinkSync(`${file.destination}/videos/${file.filename}`);
                         resolve({ code: 0, signal: null });
@@ -116,7 +108,6 @@ export const videoCompression = async(req, res, next) => {
                 } else {
                     console.error(`ffmpeg process failed with code ${code} and signal ${signal}`);
                 }
-                console.log("wtffff")
             }
         })
     )

@@ -1,5 +1,5 @@
 import express from "express";
-import {imageResize, uploadAttachments, videoCompression} from "../middlewares/uploadImages.middleware.js";
+import {imageResize, uploadAttachments} from "../middlewares/uploadImages.middleware.js";
 import {uploadAssetResource} from "../controllers/assetResource.controller.js";
 
 

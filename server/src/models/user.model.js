@@ -54,7 +54,7 @@ const UserSchema = new Schema({
     },
     avatar: {
         type: Schema.Types.ObjectId,
-        ref: "Image"
+        ref: "ResourceStorage"
     },
     status: {
         type: Number,

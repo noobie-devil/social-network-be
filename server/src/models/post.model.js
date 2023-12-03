@@ -18,10 +18,10 @@ const PostSchema = new Schema(
         content: {
             type: String,
         },
-        images: [
+        postResources: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "Image"
+                ref: "ResourceStorage"
             }
         ],
         likeCounts: {
