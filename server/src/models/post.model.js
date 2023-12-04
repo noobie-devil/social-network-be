@@ -35,7 +35,7 @@ const PostSchema = new Schema(
                     enum: ["User", "UserPage"],
                     required: true
                 },
-                userId : {
+                user : {
                     type: Schema.Types.ObjectId
                 }
             }
@@ -69,6 +69,4 @@ PostSchema.index({user: 1, group: 1, createdAt: -1}, {
 });
 const Post = mongoose.model('Post', PostSchema);
 
-module.exports = {
-    Post
-};
+export default Post

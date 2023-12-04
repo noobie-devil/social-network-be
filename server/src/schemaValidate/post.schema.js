@@ -10,9 +10,8 @@ import {isValidMongoId} from "../utils/global.utils.js";
 /* tags is optional but each of its value must be # null */
 
 const createPostSchema = Joi.object({
-    userAuthor: Joi.string().custom(isValidMongoId),
-    userPageAuthor: Joi.string().custom(isValidMongoId),
-    group: Joi.string().custom(isValidMongoId),
+    userPageAuthor: Joi.string().custom(isValidMongoId).optional(),
+    group: Joi.string().custom(isValidMongoId).optional(),
     content: Joi.when('postResources', {
         is: Joi.array().items(Joi.string().custom(isValidMongoId)).required(),
         then: Joi.string().allow('').optional(),
@@ -23,9 +22,13 @@ const createPostSchema = Joi.object({
     privacyMode: Joi.number().valid(0,1,2).optional(),
     tags: Joi.array().items(Joi.string().required()).optional()
 })
-    .without('userAuthor', 'userPageAuthor')
-    .without('userPageAuthor', 'userAuthor')
+
+
+const likePostSchema = Joi.object({
+    userType: Joi.string().optional().valid('User', 'UserPage')
+})
 
 export {
-    createPostSchema
+    createPostSchema,
+    likePostSchema
 }

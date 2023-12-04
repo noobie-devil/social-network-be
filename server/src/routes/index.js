@@ -8,6 +8,7 @@ import enrollmentYearRouter from "./enrollmenYear.routes.js";
 import adminRouter from "./admin.routes.js";
 import permissionRouter from "./permission.routes.js";
 import assetResourceRouter from "./assetResource.routes.js";
+import postRouter from "./post.routes.js";
 
 const router = express.Router()
 router.use('/auth', authRouter)
@@ -19,4 +20,5 @@ router.use('/faculty', facultyRouter)
 router.use('/major', majorRouter)
 router.use('/enrollment-year', enrollmentYearRouter)
 router.use('/asset-resources', assetResourceRouter)
+router.use('/posts', postRouter)
 export default router;

@@ -24,7 +24,7 @@ const ResourceStorageSchema = new Schema(
 );
 ResourceStorageSchema.plugin(removeVersionFieldPlugin)
 ResourceStorageSchema.plugin(longTimestampsPlugin);
-const ResourceStorage = mongoose.model("Image", ResourceStorageSchema);
+const ResourceStorage = mongoose.model("ResourceStorage", ResourceStorageSchema);
 
 
 export default ResourceStorage
