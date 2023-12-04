@@ -1,6 +1,4 @@
 import { expect} from "chai"
-import Joi from 'joi'
-import {isValidMongoId} from "../../src/utils/global.utils.js"
 import {createPostSchema} from "../../src/schemaValidate/post.schema.js"
 import mongoose from "mongoose";
 
