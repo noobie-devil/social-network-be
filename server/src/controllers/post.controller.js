@@ -18,3 +18,15 @@ export const likePost = async(req, res, next) => {
         data: await postService.likePost(req)
     }).send(res)
 }
+
+export const unlikePost = async(req, res, next) => {
+    new OkResponse({
+        data: await postService.unlikePost(req)
+    }).send(res)
+}
+
+export const getLikesPost = async(req, res, next) => {
+    new OkResponse({
+        data: await postService.getLikesPost(req)
+    }).send(res)
+}

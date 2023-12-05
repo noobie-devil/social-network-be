@@ -4,6 +4,7 @@ import {uploadAssetResource} from "./assetResource.service.js";
 import * as postRepository from '../repositories/post.repo.js'
 import UserPage from "../models/userpage.model.js";
 import {validateMongodbId} from "../utils/global.utils.js";
+import {baseQuerySchema} from "../schemaValidate/query.schema.js";
 
 const createNewPost = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
@@ -20,6 +21,10 @@ const uploadPostResources = async(req) => {
 }
 
 const likePost = async(req) => {
+    return likeActionsHandler(req, false)
+}
+
+const likeActionsHandler = async(req, unlike) => {
     if(!req.user) throw new InvalidCredentialsError()
     const postId = req.params.postId
     validateMongodbId(postId)
@@ -27,19 +32,43 @@ const likePost = async(req) => {
     req.body.postId = postId
     if(req.body.userType && req.body.userType === "UserPage") {
         const existingUserPage = await UserPage.findOne({user: req.user._id})
-        if(existingUserPage) {
-            req.body.user = existingUserPage._id
+        if(existingUserPage) {}
+        req.body.userPage = existingUserPage._id
+        if(unlike) {
+            return await postRepository.unlikePost(req.body)
+        } else {
             return await postRepository.likePost(req.body)
         }
     } else {
         req.body.user = req.user._id
-        return await postRepository.likePost(req.body)
+        if(unlike) {
+            return await postRepository.unlikePost(req.body)
+        } else {
+            return await postRepository.likePost(req.body)
+        }
     }
+}
+
+const unlikePost = async(req) => {
+    return await likeActionsHandler(req, true)
+}
+
+const getLikesPost = async(req) => {
+    let currentActorId = null
+    if(req.user) {
+        currentActorId = req.user._id
+    }
+    const postId = req.params.postId
+    validateMongodbId(postId)
+    await baseQuerySchema.validateAsync(req.query)
+    return await postRepository.getLikesPost(currentActorId, postId, req.query)
 }
 
 
 export {
     createNewPost,
     likePost,
+    unlikePost,
     uploadPostResources,
+    getLikesPost
 }
