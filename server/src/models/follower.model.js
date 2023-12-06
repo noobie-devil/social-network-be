@@ -3,10 +3,19 @@ import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugin
 
 const userTypes = ["User", "UserPage"]
 
-const FollowerSchema = new Schema({
+const FollowerSchema = new Schema(
+    {
         user: {
             type: Schema.Types.ObjectId,
-            ref: "User"
+            ref: "User",
+            unique: true,
+            dropDups: true
+        },
+        userPage: {
+            type: Schema.Types.ObjectId,
+            ref: "UserPage",
+            unique: true,
+            dropDups: true
         },
         followers: [
             {
@@ -15,17 +24,48 @@ const FollowerSchema = new Schema({
                     enum: userTypes,
                     required: true
                 },
-                followee: {
+                user: {
                     type: Schema.Types.ObjectId,
+                    ref: "User",
+                    unique: true,
+                    dropDups: true
                 },
+                page: {
+                    type: Schema.Types.ObjectId,
+                    ref: "UserPage",
+                    unique: true,
+                    dropDups: true
+                }
             }
         ],
         followerCounts: {
             type: Number,
             default: 0
-        }
+        },
+        following: [
+            {
+                userType: {
+                    type: String,
+                    enum: userTypes,
+                    required: true
+                },
+                user: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                    unique: true,
+                    dropDups: true
+                },
+                page: {
+                    type: Schema.Types.ObjectId,
+                    ref: "UserPage",
+                    unique: true,
+                    dropDups: true
+                }
+            }
+        ]
     }
-    , {
+    ,
+    {
         timestamps: false
     }
 )

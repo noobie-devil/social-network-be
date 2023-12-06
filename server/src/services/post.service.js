@@ -61,6 +61,7 @@ const getLikesPost = async(req) => {
     const postId = req.params.postId
     validateMongodbId(postId)
     await baseQuerySchema.validateAsync(req.query)
+    // return await postRepository.getLikesPost(postId, req.query)
     return await postRepository.getLikesPost(currentActorId, postId, req.query)
 }
 

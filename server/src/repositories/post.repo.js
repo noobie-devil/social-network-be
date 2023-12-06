@@ -3,9 +3,11 @@ import {cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
+import Like from "../models/like.model.js";
+import Follower from "../models/follower.model.js";
 
 
-const createNewPost = async(payload) => {
+const createNewPost = async (payload) => {
     try {
         payload = cleanNullAndEmptyData(payload)
         return await Post.create(payload)
@@ -22,159 +24,158 @@ const createNewPost = async(payload) => {
  * @param userType - Specify the value of userType who performed. Valid values ["User", "UserPage"]
  * @returns {Promise<*>}
  */
-const likePost = async({postId, user, userPage, userType = 'User'}) => {
+const likePost = async ({postId, user, userPage, userType = 'User'}) => {
     const post = await Post.findById(postId)
-    if(!post || post.privacyMode === 0) throw new NotFoundError()
+    if (!post || post.privacyMode === 0) throw new NotFoundError()
     let existingLike = null
-    if(userType === "User") {
-        console.log(post.likes)
-        existingLike = await post.likes.find(like => like.userType === "User" && like.user && like.user.toString() === user)
+    if (userType === "User") {
+        existingLike = await Like.findOne({postId, user, userType: "User"})
     } else {
-        existingLike = await post.likes.find(like => like.userType === "UserPage" && like.userPage && like.userPage.toString() === userPage.toString())
+        existingLike = await Like.findOne({postId, userPage, userType: "UserPage"})
     }
-    if(!existingLike) {
-        const likeInfo = { userType}
-        if(userType === "User") {
+    if (!existingLike) {
+        const likeInfo = {post: postId, userType}
+        if (userType === "User") {
             likeInfo.user = user
         } else {
             likeInfo.userPage = userPage
         }
-        post.likes.unshift(likeInfo)
-        post.likeCounts = post.likes.length
+        const newLike = new Like(likeInfo)
+        await newLike.save()
+        post.likeCounts += 1
+        await post.save()
     } else {
         throw new BadRequestError()
     }
-    return await returnLikeActionRes(post)
+    return await getLikesPost(userType === "User" ? user : userPage, postId, {
+        limit: 10
+    })
 }
 
-const unlikePost = async({postId, user, userPage, userType = 'User'}) => {
+const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
     const post = await Post.findById(postId)
-    if(!post || post.privacyMode === 0) throw new NotFoundError()
-    let existingIndex = null
-    if(userType === "User") {
-        existingIndex = post.likes.findIndex(like => like.userType === "User" && like.user && like.user.toString() === user.toString())
+    if (!post || post.privacyMode === 0) throw new NotFoundError()
+    let existingLike = null
+    if (userType === "User") {
+        existingLike = await Like.findOneAndDelete({postId, user, userType: "User"})
     } else {
-        existingIndex = post.likes.findIndex(like => like.userType === "UserPage" && like.userPage && like.userPage.toString() === userPage.toString())
+        existingLike = await Like.findOneAndDelete({postId, userPage, userType: "UserPage"})
     }
-    if(existingIndex !== -1) {
-        const likeInfo = { userType}
-        if(userType === "User") {
-            likeInfo.user = user
-        } else {
-            likeInfo.userPage = userPage
-        }
-        post.likes.splice(existingIndex, 1);
-        post.likeCounts = post.likes.length
+    if (!existingLike) {
+        throw new NotFoundError()
     } else {
-        throw new BadRequestError()
+        post.likeCounts -= 1
+        await post.save()
     }
-
-    return await returnLikeActionRes(post)
+    return await getLikesPost(userType === "User" ? user : userPage, postId, {
+        limit: 10
+    })
 }
 
-const returnLikeActionRes = async (post) => {
-    return await post.save()
-        .then(async value => {
-            value.likes = value.likes.slice(0, 20)
-            await value.populate([
-                {path: 'likes.user', model: 'User', select: 'username email avatar'},
-                {path: 'likes.userPage', model: 'UserPage', select: 'pageName avatar'},
-                {path: 'postResources'},
-                {path: 'likes.user.avatar', model: "ResourceStorage"},
-                {path: 'likes.userPage.avatar', model: "ResourceStorage"}
-            ])
-            const { _id, likes, likeCounts } = value.toObject()
-            return {
-                _id, likes, likeCounts
-            }
-        })
-}
-
-const getPostById = async(postId) => {
-    const post = await Post.findById(postId)
-    if(!post) throw new NotFoundError()
-    return post
-}
-
-const getLikesPost = async(currentActorId, postId, {search = "", limit = 20, page = 1}) => {
-    const post = getPostById(postId)
+const getFeedPosts = async(userId, page = 1, limit = 10) => {
+    let posts = []
+    const currentListFollow = await Follower.findOne({user: userId})
+    if(!currentListFollow) {
+        return posts
+    }
+    const followingUsers = currentListFollow.following.filter(following => following.userType === 'User').map(following => following.user)
+    const followingPages = currentListFollow.following.filter(following => following.userType === 'UserPage').map(following => following.page)
     const skip = (page - 1) * limit
+    posts = await Post.find({
+        $or: [
+            { userAuthor: { $in: followingUsers }},
+            { userPageAuthor: { $in: followingPages }}
+        ]
+    })
+        .sort({updatedAt: -1})
+        .skip(skip)
+        .limit(limit)
+    return posts
+}
 
-    const likes = await Post.aggregate([
-        { $match: { _id: new mongoose.Types.ObjectId(postId) }},
+const getLikesPost = async (currentActorId, postId, {search = "", limit = 20, page = 1}) => {
+    const skip = (page - 1) * limit
+    const post = await Post.findById(postId)
+    if(!post || post.privacyMode === 0) {
+        if(post && post.userAuthor && post.userAuthor.toString() === currentActorId.toString() || post.userPageAuthor && post.userPageAuthor.toString() === currentActorId.toString()) {
+
+        } else {
+            throw new NotFoundError()
+        }
+    }
+    const aggregateQuery = [
+        {$match: { post: new mongoose.Types.ObjectId(postId)}},
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'user',
+                foreignField: '_id',
+                as: 'user'
+            }
+        },
+        {
+            $lookup: {
+                from: 'userpages',
+                localField: 'userPage',
+                foreignField: '_id',
+                as: 'userPage'
+            }
+        },
+        {$unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+        {$unwind: { path: '$userPage', preserveNullAndEmptyArrays: true } },
+        {
+            $lookup: {
+                from: 'resourcestorages',
+                localField: 'user.avatar',
+                foreignField: '_id',
+                as: 'user.avatar'
+            }
+        },
+        {
+            $lookup: {
+                from: 'resourcestorages',
+                localField: 'userPage.avatar',
+                foreignField: '_id',
+                as: 'userPage.avatar'
+            }
+        },
+        { $unwind: { path: '$user.avatar', preserveNullAndEmptyArrays: true } },
+        { $unwind: { path: '$userPage.avatar', preserveNullAndEmptyArrays: true } },
+        {
+            $project: {
+                'user.username': 1,
+                'user.email': 1,
+                'user.avatar.url': 1,
+                'userPage.pageName': 1,
+                'userPage.avatar.url': 1,
+            }
+        },
         {
             $match: {
                 $or: [
-                    { privacyMode: { $ne: 0}},
-                    { userAuthor: new mongoose.Types.ObjectId(currentActorId) },
-                    { userPageAuthor: new mongoose.Types.ObjectId(currentActorId) }
+                    {'user.username': {$regex: search, $options: 'i'}},
+                    {'userPage.pageName': {$regex: search, $options: 'i'}}
                 ]
             }
         },
         {
             $project: {
-                likes: 1,
-                _id: 0,
-                likeCounts: 1
+                'user': { $cond: [{ $eq: ['$user', {}]}, "$$REMOVE", "$user"]},
+                'userPage': { $cond: [{ $eq: ['$userPage', {}]}, "$$REMOVE", "$userPage"]},
+                'userType': 1,
+                'post': 1,
+                'createdAt': 1,
+                'updatedAt': 1,
             }
-        },
-        {
-            $unwind: "$likes"
-        },
-        { $skip: parseInt(skip, 10) },
-        { $limit: parseInt(limit, 10) },
-        {
-            $match: {
-                $or: [
-                    { 'likes.userType': 'User', 'likes.user': { $exists: true } }, // Filter User likes
-                    { 'likes.userType': 'UserPage', 'likes.userPage': { $exists: true } }, // Filter UserPage likes
-                ],
-            },
-        },
-        {
-            $lookup: {
-                from: 'users',
-                localField: 'likes.user',
-                foreignField: '_id',
-                as: 'likes.user',
-            },
-        },
-        {
-            $lookup: {
-                from: 'userpages',
-                localField: 'likes.userPage',
-                foreignField: '_id',
-                as: 'likes.userPage',
-            },
-        },
-        {
-            $lookup: {
-                from: 'resourcestorages',
-                localField: 'likes.user.avatar',
-                foreignField: '_id',
-                as: 'likes.user.avatar',
-            },
-        },
-        {
-            $lookup: {
-                from: 'resourcestorages',
-                localField: 'likes.userPage.avatar',
-                foreignField: '_id',
-                as: 'likes.userPage.avatar',
-            },
-        },
-        {
-            $match: {
-                $or: [
-                    { 'likes.user.username': { $regex: new RegExp(search, 'i') } }, // Search in User likes
-                    { 'likes.userPage.pageName': { $regex: new RegExp(search, 'i') } }, // Search in UserPage likes
-                ],
-            },
-        },
-    ])
-    return likes
+        }
+    ]
+    const count = await Like.aggregate([...aggregateQuery, { $count: "likeCounts" }])
+    const likes = await Like.aggregate([...aggregateQuery, { $skip: parseInt(skip, 10) }, { $limit: parseInt(limit, 10) }])
+    return {
+        likes,
+        likeCounts: count[0].likeCounts
+    }
 }
-
 
 
 export {

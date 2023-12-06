@@ -30,19 +30,8 @@ const PostSchema = new Schema(
         },
         likes: [
             {
-                userType: {
-                    type: String,
-                    enum: ["User", "UserPage"],
-                    required: true
-                },
-                user : {
-                    type: Schema.Types.ObjectId,
-                    ref: "User"
-                },
-                userPage: {
-                    type: Schema.Types.ObjectId,
-                    ref: "UserPage"
-                }
+                type: Schema.Types.ObjectId,
+                ref: "Like"
             }
         ],
         sharedPost: {
