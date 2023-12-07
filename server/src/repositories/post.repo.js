@@ -29,21 +29,33 @@ const likePost = async ({postId, user, userPage, userType = 'User'}) => {
     if (!post || post.privacyMode === 0) throw new NotFoundError()
     let existingLike = null
     if (userType === "User") {
-        existingLike = await Like.findOne({postId, user, userType: "User"})
+        existingLike = await Like.findOne({post: postId, user, userType: "User"})
     } else {
-        existingLike = await Like.findOne({postId, userPage, userType: "UserPage"})
+        existingLike = await Like.findOne({post: postId, userPage, userType: "UserPage"})
     }
     if (!existingLike) {
-        const likeInfo = {post: postId, userType}
-        if (userType === "User") {
-            likeInfo.user = user
-        } else {
-            likeInfo.userPage = userPage
+        const session = await mongoose.startSession()
+        session.startTransaction()
+        try {
+            const likeInfo = {post: postId, userType}
+            if (userType === "User") {
+                likeInfo.user = user
+            } else {
+                likeInfo.userPage = userPage
+            }
+            const newLike = new Like(likeInfo)
+            await newLike.save({session})
+            post.likeCounts += 1
+            post.likes.unshift(newLike._id)
+            post.likes = post.likes.slice(0, 10)
+            await post.save({session})
+            await session.commitTransaction()
+        } catch(e) {
+            await session.abortTransaction()
+            throw e
+        } finally {
+            await session.endSession()
         }
-        const newLike = new Like(likeInfo)
-        await newLike.save()
-        post.likeCounts += 1
-        await post.save()
     } else {
         throw new BadRequestError()
     }
@@ -56,17 +68,29 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
     const post = await Post.findById(postId)
     if (!post || post.privacyMode === 0) throw new NotFoundError()
     let existingLike = null
-    if (userType === "User") {
-        existingLike = await Like.findOneAndDelete({postId, user, userType: "User"})
-    } else {
-        existingLike = await Like.findOneAndDelete({postId, userPage, userType: "UserPage"})
+    const session = await mongoose.startSession()
+    session.startTransaction()
+    try {
+        if (userType === "User") {
+            existingLike = await Like.findOneAndDelete({post: postId, user, userType: "User"}, {session})
+        } else {
+            existingLike = await Like.findOneAndDelete({post: postId, userPage, userType: "UserPage"}, {session})
+        }
+        if (!existingLike) {
+            throw new NotFoundError()
+        } else {
+            post.likeCounts -= 1
+            post.likes = post.likes.filter(id => !id.equals(existingLike._id))
+            await post.save({session})
+        }
+        await session.commitransaction()
+    } catch (e) {
+        await session.abortTransaction()
+        throw e
+    } finally {
+        await session.endSession()
     }
-    if (!existingLike) {
-        throw new NotFoundError()
-    } else {
-        post.likeCounts -= 1
-        await post.save()
-    }
+
     return await getLikesPost(userType === "User" ? user : userPage, postId, {
         limit: 10
     })
@@ -74,12 +98,17 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
 
 const getFeedPosts = async(userId, page = 1, limit = 10) => {
     let posts = []
+    let followingUsers = []
+    let followingPages = []
     const currentListFollow = await Follower.findOne({user: userId})
-    if(!currentListFollow) {
-        return posts
+
+    if(currentListFollow) {
+        followingUsers = currentListFollow.following.filter(following => following.userType === 'User').map(following => following.user)
+        followingPages = currentListFollow.following.filter(following => following.userType === 'UserPage').map(following => following.page)
     }
-    const followingUsers = currentListFollow.following.filter(following => following.userType === 'User').map(following => following.user)
-    const followingPages = currentListFollow.following.filter(following => following.userType === 'UserPage').map(following => following.page)
+    followingUsers.push(userId)
+    followingPages.push(userId)
+    console.log(followingUsers)
     const skip = (page - 1) * limit
     posts = await Post.find({
         $or: [
@@ -87,6 +116,28 @@ const getFeedPosts = async(userId, page = 1, limit = 10) => {
             { userPageAuthor: { $in: followingPages }}
         ]
     })
+        .populate({
+            path: "likes",
+            select: "userType user userPage -_id",
+            populate: [
+                {
+                    path: "user",
+                    select: "username avatar email",
+                    populate: {
+                        path: "avatar",
+                        select: "url -_id"
+                    }
+                },
+                {
+                    path: "userPage",
+                    select: "pageName avatar",
+                    populate: {
+                        path: "avatar",
+                        select: "url -_id"
+                    }
+                },
+            ]
+        })
         .sort({updatedAt: -1})
         .skip(skip)
         .limit(limit)
@@ -173,7 +224,7 @@ const getLikesPost = async (currentActorId, postId, {search = "", limit = 20, pa
     const likes = await Like.aggregate([...aggregateQuery, { $skip: parseInt(skip, 10) }, { $limit: parseInt(limit, 10) }])
     return {
         likes,
-        likeCounts: count[0].likeCounts
+        likeCounts: count[0] ? count[0].likeCounts : 0
     }
 }
 
@@ -182,5 +233,6 @@ export {
     createNewPost,
     likePost,
     unlikePost,
-    getLikesPost
+    getLikesPost,
+    getFeedPosts
 }

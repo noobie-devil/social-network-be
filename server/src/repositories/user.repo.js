@@ -169,10 +169,6 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
     return await query.exec();
 }
 
-const findUserById = async (userId) => {
-    return await User.findById(userId).exec();
-}
-
 const findUserByEmail = async ({email, select = {
         email: 1, password: 1, username: 1, status: 1
     }}) => {
@@ -187,8 +183,8 @@ const findByEmail = async(email) => {
 
 const findById = async(id) => {
     const user = await User.findById(id)
+    if(!user) throw new NotFoundError()
     return user.toPublicData()
-
 }
 
 const create = async (model, payload, session) => {
@@ -198,6 +194,13 @@ const create = async (model, payload, session) => {
         return user[0].toPublicData()
     }
     return user
+}
+
+const uploadAvatar = async(userId, avatar) => {
+    const update = await User.findByIdAndUpdate(userId, { avatar }, { new: true})
+    console.log(update)
+    if(!update) throw new NotFoundError()
+    return update.toPublicData()
 }
 
 const updateUserById = async({
@@ -216,8 +219,8 @@ const updateUserById = async({
 }
 
 export {
-    sendFriendRequest, findUserById, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
-    findById, updateUserById, create, findByEmail
+    sendFriendRequest, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
+    findById, updateUserById, create, findByEmail, uploadAvatar
 }
 
 
