@@ -1,10 +1,11 @@
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
-import {createPostSchema, likePostSchema} from "../schemaValidate/post.schema.js";
+import {createPostSchema, getFeedPostsSchema, likePostSchema} from "../schemaValidate/post.schema.js";
 import {uploadAssetResource} from "./assetResource.service.js";
 import * as postRepository from '../repositories/post.repo.js'
 import UserPage from "../models/userpage.model.js";
 import {validateMongodbId} from "../utils/global.utils.js";
 import {baseQuerySchema} from "../schemaValidate/query.schema.js";
+import {BadRequestError} from "../core/errors/badRequest.error.js";
 
 const createNewPost = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
@@ -53,6 +54,20 @@ const unlikePost = async(req) => {
     return await likeActionsHandler(req, true)
 }
 
+const getFeedPosts = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    await getFeedPostsSchema.validateAsync(req.query)
+    let _id = null
+    if(req.body.userType && req.body.userType === "UserPage") {
+        const existingUserPage = await UserPage.findOne({user: req.user._id})
+        if(!existingUserPage) throw new BadRequestError()
+        _id = existingUserPage._id
+    } else {
+        _id = req.user._id
+    }
+    return await postRepository.getFeedPosts(_id, req.query)
+}
+
 const getLikesPost = async(req) => {
     let currentActorId = null
     if(req.user) {
@@ -71,5 +86,6 @@ export {
     likePost,
     unlikePost,
     uploadPostResources,
-    getLikesPost
+    getLikesPost,
+    getFeedPosts
 }

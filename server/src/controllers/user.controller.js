@@ -43,3 +43,9 @@ export const updateUserById = async(req, res, next) => {
         message: "Update success"
     }).send(res)
 }
+
+export const uploadAvatar = async(req, res, next) => {
+    new OkResponse({
+        data: await userService.uploadAvatar(req)
+    }).send(res)
+}

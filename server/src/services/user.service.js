@@ -9,10 +9,23 @@ import mongoose from "mongoose";
 import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import {baseQuerySchema} from "../schemaValidate/query.schema.js";
+import {uploadAssetResource} from "./assetResource.service.js";
 
 export const findById = async(req) => {
     validateMongodbId(req.params.id)
     return await userRepository.findById(req.params.id);
+}
+
+const uploadAvatar = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const user = await userRepository.findById(req.user._id)
+    const {resources} = await uploadAssetResource(req)
+    if(resources) {
+        const avatar = resources[0]._id
+        return await userRepository.uploadAvatar(user._id, avatar)
+    } else {
+        throw new BadRequestError()
+    }
 }
 
 export const sendFriendRequest = async (req) => {
@@ -232,3 +245,6 @@ userClasses[1] = CollegeStudentDTO
 userClasses[2] = LecturerDTO
 userClasses[3] = CandidateDTO
 
+export {
+    uploadAvatar
+}

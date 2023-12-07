@@ -30,3 +30,9 @@ export const getLikesPost = async(req, res, next) => {
         data: await postService.getLikesPost(req)
     }).send(res)
 }
+
+export const getFeedPosts = async(req, res, next) => {
+    new OkResponse({
+        data: await postService.getFeedPosts(req)
+    }).send(res)
+}

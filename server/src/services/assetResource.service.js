@@ -1,6 +1,18 @@
-import {firebaseStorageUpload} from "./firebaseStorage.service.js";
+import {firebaseStorageDelete, firebaseStorageUpload} from "./firebaseStorage.service.js";
 import ResourceStorage, {ResourceType} from "../models/resourceStorage.model.js";
 
+
+const deleteAssetResource = async(req) => {
+    const deleter = async ({_id, url}) => firebaseStorageDelete(_id, url)
+    const {resources} = req?.body
+    const resourceStorages = await ResourceStorage.find({
+        _id: { $in: resources}
+    })
+        .select('url')
+    for(const resourceStorage of resourceStorages) {
+        await deleter(resourceStorage)
+    }
+}
 const uploadAssetResource = async(req) => {
     const uploader = async (file) => firebaseStorageUpload(file)
     const files = req?.files

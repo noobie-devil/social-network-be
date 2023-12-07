@@ -1,9 +1,10 @@
 import config from "../utils/global.config.js";
 import {initializeApp} from "firebase/app";
 import {getAnalytics, isSupported} from "firebase/analytics";
-import {getDownloadURL, getStorage, ref, uploadBytesResumable} from "firebase/storage";
+import {getDownloadURL, getStorage, ref, uploadBytesResumable, deleteObject} from "firebase/storage";
 import {UnsupportedFileFormatError} from "../core/errors/unsupportedFileFormat.error.js";
 import {readFileSync} from "fs";
+import ResourceStorage from "../models/resourceStorage.model.js";
 
 const firebaseConfig = {
     apiKey: config.FIREBASE.API_KEY,
@@ -19,6 +20,19 @@ const firebaseApp = initializeApp(firebaseConfig)
 const analytics = isSupported().then(yes => yes ? getAnalytics(firebaseApp) : null)
 const storage = getStorage()
 
+
+
+const firebaseStorageDelete = async(_id, url) => {
+    const storageRef = ref(storage, url)
+    try {
+        await deleteObject(storageRef)
+        await ResourceStorage.findByIdAndDelete(_id)
+    } catch (e) {
+        console.error('Error deleting object firebase storage:', e)
+        throw e
+    }
+
+}
 
 const firebaseStorageUpload = async(fileToUpload) => {
     console.log(fileToUpload.mimetype)
@@ -94,5 +108,6 @@ const firebaseStorageUpload = async(fileToUpload) => {
 
 
 export {
-    firebaseStorageUpload
+    firebaseStorageUpload,
+    firebaseStorageDelete
 }

@@ -12,7 +12,7 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename);
-const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpeg'];
+const allowedImageTypes = ['image/jpg', 'image/png', 'image/jpeg'];
 
 const multerStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -56,7 +56,7 @@ export const imageResize = async(req, res, next) => {
         req.files.images.map(async (file) => {
             if(allowedImageTypes.includes(file.mimetype)) {
                 await checkFileSize(file.path)
-                await sharp(file.path).resize(300, 300).toFormat('jpeg').jpeg({
+                await sharp(file.path).resize(500, 500).toFormat('jpeg').jpeg({
                     quality: 90
                 }).toFile(`${file.destination}/images/${file.filename}`);
                 fs.unlinkSync(`${file.destination}/images/${file.filename}`);

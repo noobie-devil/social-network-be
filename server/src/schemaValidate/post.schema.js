@@ -28,7 +28,14 @@ const likePostSchema = Joi.object({
     userType: Joi.string().optional().valid('User', 'UserPage')
 })
 
+const getFeedPostsSchema = Joi.object({
+    userType: Joi.string().optional().valid('User', 'UserPage'),
+    page: Joi.number().integer().min(1).optional(),
+    limit: Joi.number().integer().min(1).optional(),
+})
+
 export {
     createPostSchema,
-    likePostSchema
+    likePostSchema,
+    getFeedPostsSchema
 }
