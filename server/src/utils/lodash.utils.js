@@ -5,7 +5,7 @@ export const omitFields = ({ fields = [], obj = {} }) => {
 }
 
 export const cleanData = (obj) => {
-    return _.omitBy(obj, v => v == null)
+    return _.omitBy(obj, v => v == null || v === undefined)
 }
 
 export const cleanNullAndEmptyArray = (obj) => {

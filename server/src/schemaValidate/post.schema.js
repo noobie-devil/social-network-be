@@ -24,6 +24,16 @@ const createPostSchema = Joi.object({
 })
 
 
+const updatePostSchema = Joi.object({
+    content: Joi.when('postResources', {
+        is: Joi.array().items(Joi.string().custom(isValidMongoId)).required(),
+        then: Joi.string().allow('').allow(null).optional(),
+        otherwise: Joi.string().allow('').required()
+    }),
+    postResources: Joi.array().items(Joi.string().custom(isValidMongoId)).allow(null).optional(),
+})
+
+
 const likePostSchema = Joi.object({
     userType: Joi.string().optional().valid('User', 'UserPage')
 })
@@ -34,8 +44,16 @@ const getFeedPostsSchema = Joi.object({
     limit: Joi.number().integer().min(1).optional(),
 })
 
+const queryUserPostsSchema = Joi.object({
+    page: Joi.number().integer().min(1).optional(),
+    limit: Joi.number().integer().min(1).optional(),
+})
+
+
 export {
     createPostSchema,
     likePostSchema,
-    getFeedPostsSchema
+    getFeedPostsSchema,
+    updatePostSchema,
+    queryUserPostsSchema
 }

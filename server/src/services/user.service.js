@@ -1,6 +1,6 @@
 import * as userRepository from "../repositories/user.repo.js";
 import {validateMongodbId} from "../utils/global.utils.js";
-import {User, CollegeStudent,Lecturer, Candidate} from "../models/user.model.js"
+import {Candidate, CollegeStudent, Lecturer, User} from "../models/user.model.js"
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
 import {createUserSchema, respondFriendRequestSchema, updateUserSchema} from "../schemaValidate/user.schema.js";
@@ -9,7 +9,7 @@ import mongoose from "mongoose";
 import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import {baseQuerySchema} from "../schemaValidate/query.schema.js";
-import {uploadAssetResource} from "./assetResource.service.js";
+import {updateSingleAssetResource, uploadAssetResource} from "./assetResource.service.js";
 
 export const findById = async(req) => {
     validateMongodbId(req.params.id)
@@ -18,14 +18,26 @@ export const findById = async(req) => {
 
 const uploadAvatar = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
+    // const user = await User.findById(req.user._id)
     const user = await userRepository.findById(req.user._id)
+    if(user.avatar) {
+        const assetId = user.avatar._id
+        await updateSingleAssetResource({files: req.files, assetId})
+
+        return await userRepository.findById(req.user._id)
+    }
     const {resources} = await uploadAssetResource(req)
-    if(resources) {
+    if(resources && resources.length !== 0) {
         const avatar = resources[0]._id
         return await userRepository.uploadAvatar(user._id, avatar)
     } else {
         throw new BadRequestError()
     }
+}
+
+const removeAvatar = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    return await userRepository.removeAvatar(req.user._id)
 }
 
 export const sendFriendRequest = async (req) => {
@@ -246,5 +258,6 @@ userClasses[2] = LecturerDTO
 userClasses[3] = CandidateDTO
 
 export {
-    uploadAvatar
+    uploadAvatar,
+    removeAvatar
 }

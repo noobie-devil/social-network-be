@@ -1,5 +1,11 @@
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
-import {createPostSchema, getFeedPostsSchema, likePostSchema} from "../schemaValidate/post.schema.js";
+import {
+    createPostSchema,
+    getFeedPostsSchema,
+    likePostSchema,
+    queryUserPostsSchema,
+    updatePostSchema
+} from "../schemaValidate/post.schema.js";
 import {uploadAssetResource} from "./assetResource.service.js";
 import * as postRepository from '../repositories/post.repo.js'
 import UserPage from "../models/userpage.model.js";
@@ -16,9 +22,32 @@ const createNewPost = async(req) => {
     return await postRepository.createNewPost(req.body)
 }
 
+const getPostById = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const postId = req.params.postId
+    validateMongodbId(postId)
+    return await postRepository.getPostById(postId)
+}
+
 const uploadPostResources = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
     return await uploadAssetResource(req)
+}
+
+
+const updatePost = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const postId = req.params.postId
+    validateMongodbId(postId)
+    await updatePostSchema.validateAsync(req.body)
+    return await postRepository.updatePost(postId, req.body)
+}
+
+const deletePost = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const postId = req.params.postId
+    validateMongodbId(postId)
+    return await postRepository.deletePost(postId)
 }
 
 const likePost = async(req) => {
@@ -54,6 +83,15 @@ const unlikePost = async(req) => {
     return await likeActionsHandler(req, true)
 }
 
+
+const getUserPosts = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    await queryUserPostsSchema.validateAsync(req.query)
+    const userId = req.params.userId
+    validateMongodbId(userId)
+    return await postRepository.getUserPosts(userId, req.query)
+}
+
 const getFeedPosts = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
     await getFeedPostsSchema.validateAsync(req.query)
@@ -82,10 +120,14 @@ const getLikesPost = async(req) => {
 
 
 export {
+    getPostById,
     createNewPost,
+    updatePost,
+    deletePost,
     likePost,
     unlikePost,
     uploadPostResources,
     getLikesPost,
-    getFeedPosts
+    getFeedPosts,
+    getUserPosts
 }

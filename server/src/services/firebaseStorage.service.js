@@ -5,6 +5,7 @@ import {getDownloadURL, getStorage, ref, uploadBytesResumable, deleteObject} fro
 import {UnsupportedFileFormatError} from "../core/errors/unsupportedFileFormat.error.js";
 import {readFileSync} from "fs";
 import ResourceStorage from "../models/resourceStorage.model.js";
+import mongoose from "mongoose";
 
 const firebaseConfig = {
     apiKey: config.FIREBASE.API_KEY,
@@ -21,22 +22,50 @@ const analytics = isSupported().then(yes => yes ? getAnalytics(firebaseApp) : nu
 const storage = getStorage()
 
 
-
-const firebaseStorageDelete = async(_id, url) => {
+const firebaseStorageDeleteAndRef = async(_id, url) => {
     const storageRef = ref(storage, url)
+    const session = await mongoose.startSession()
+    session.startTransaction()
+    try {
+        await ResourceStorage.findByIdAndDelete(_id, {session})
+        await deleteObject(storageRef)
+        await session.commitTransaction()
+        console.log('Delete success ' + url)
+    } catch (e) {
+        if(e.code) {
+            switch(e.code) {
+                case 'storage/object-not-found':
+                    console.log(`firebaseStorageDeleteAndRef catch error: ${url} not exists`)
+                    break;
+            }
+        } else {
+            console.error(`firebaseStorageDeleteAndRef catch error: ${e}`)
+            await session.abortTransaction()
+        }
+    } finally {
+        await session.endSession()
+    }
+}
+const firebaseStorageDelete = async(deleteUrl) => {
+    console.log(deleteUrl)
+    const storageRef = ref(storage, deleteUrl)
     try {
         await deleteObject(storageRef)
-        await ResourceStorage.findByIdAndDelete(_id)
+        console.log('Delete success ' + deleteUrl)
     } catch (e) {
-        console.error('Error deleting object firebase storage:', e)
-        throw e
+        if(e.code) {
+            switch(e.code) {
+                case 'storage/object-not-found':
+                    console.log(`firebaseStorageDelete catch error: ${url} not exists`)
+                    break;
+            }
+        } else {
+            console.error(`firebaseStorageDelete catch error: ${e}`)
+        }
     }
-
 }
 
 const firebaseStorageUpload = async(fileToUpload) => {
-    console.log(fileToUpload.mimetype)
-    console.log(fileToUpload.originalname)
     const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpeg'];
     let storageRef = null
     let metadata = null
@@ -109,5 +138,6 @@ const firebaseStorageUpload = async(fileToUpload) => {
 
 export {
     firebaseStorageUpload,
-    firebaseStorageDelete
+    firebaseStorageDelete,
+    firebaseStorageDeleteAndRef
 }

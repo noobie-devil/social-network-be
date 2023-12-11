@@ -1,20 +1,114 @@
-import Post from "../models/post.model.js";
-import {cleanNullAndEmptyData} from "../utils/lodash.utils.js";
+import Post, {requiredPopulatedObject} from "../models/post.model.js";
+import {cleanData, cleanNullAndEmptyData} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
 import Like from "../models/like.model.js";
 import Follower from "../models/follower.model.js";
+import {deleteAssetResourceWithRef} from "../services/assetResource.service.js";
+import ResourceStorage from "../models/resourceStorage.model.js";
 
 
 const createNewPost = async (payload) => {
     try {
         payload = cleanNullAndEmptyData(payload)
-        return await Post.create(payload)
+        const createdPost = await Post.create(payload)
+        return await createdPost
+            .populate(requiredPopulatedObject)
     } catch (e) {
         throw e
     }
 }
+
+const getPostById = async(postId) => {
+    const post = await Post.findById(postId)
+    if(!post) throw new NotFoundError()
+    return post
+}
+
+const updatePost = async(postId, payload) => {
+    payload = cleanData(payload)
+    console.log(payload)
+    const post = await Post.findById(postId)
+    if(!post) throw new NotFoundError()
+    const invalidCondition = (!payload.postResources || payload.postResources.length === 0) && (!payload.content || payload.content.toString() === '')
+
+    if(!post.postResources || post.postResources.length === 0 || !post.content || post.content === '') {
+        if(invalidCondition) {
+            throw new BadRequestError()
+        }
+    }
+    const removedResources = []
+    if(payload) {
+        if(payload.postResources) {
+            removedResources.push(...
+                post.postResources.filter(resource => !payload.postResources.includes(resource._id.toString()))
+                    .map(resource => resource._id)
+            )
+            console.log("postResources: " + removedResources)
+        }
+        const session = await mongoose.startSession()
+        await session.startTransaction()
+        try {
+            if(payload.content !== undefined) {
+                post.content = payload.content
+            }
+            if(payload.postResources) {
+                const attachmentChanges = removedResources.length !== 0 || (post.postResources && payload.postResources.length !== post.postResources.length)
+                if(attachmentChanges) {
+                    post.postResources = await ResourceStorage.find({
+                        _id: {$in: payload.postResources}
+                    }).select("url resourceType")
+                }
+            }
+            await post.save({new: true, session})
+            await session.commitTransaction()
+            if(removedResources.length !== 0) {
+                deleteAssetResourceWithRef({
+                    resources: removedResources
+                })
+            }
+            return post
+        } catch (e) {
+            await session.abortTransaction()
+            throw e
+        } finally {
+            await session.endSession()
+        }
+    } else {
+        throw new BadRequestError()
+    }
+
+}
+
+const deletePost = async(postId) => {
+    const post = await Post.findById(postId)
+    if(!post) throw new NotFoundError()
+    const removedResources = []
+    if(post.postResources) {
+        removedResources.push(...post.postResources)
+    }
+    const session = await mongoose.startSession()
+    await session.startTransaction()
+    try {
+        await Like.deleteMany({post: postId}, {session})
+        await post.deleteOne({session})
+        await session.commitTransaction()
+        if(removedResources && removedResources.length !== 0) {
+            deleteAssetResourceWithRef({
+                resources: removedResources
+            })
+        }
+        return "Delete success"
+    } catch (e) {
+        await session.abortTransaction()
+        throw e
+    } finally {
+        await session.endSession()
+    }
+}
+
+
 
 /**
  * Like the post
@@ -96,52 +190,45 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
     })
 }
 
-const getFeedPosts = async(userId, page = 1, limit = 10) => {
-    let posts = []
+const getUserPosts = async(userId, {page = 1, limit = 10}) => {
+    const skip = (page - 1) * limit
+    return await Post.find({
+        $or: [
+            {userAuthor: {$in: userId}},
+            {userPageAuthor: {$in: userId}}
+        ],
+        privacyMode: 1
+    })
+        .sort({updatedAt: -1})
+        .skip(skip)
+        .limit(limit)
+        .exec()
+}
+
+const getFeedPosts = async(userId, {page = 1, limit = 10}) => {
     let followingUsers = []
     let followingPages = []
-    const currentListFollow = await Follower.findOne({user: userId})
 
+    const currentListFollow = await Follower.findOne({user: userId})
     if(currentListFollow) {
         followingUsers = currentListFollow.following.filter(following => following.userType === 'User').map(following => following.user)
         followingPages = currentListFollow.following.filter(following => following.userType === 'UserPage').map(following => following.page)
     }
+
     followingUsers.push(userId)
     followingPages.push(userId)
-    console.log(followingUsers)
     const skip = (page - 1) * limit
-    posts = await Post.find({
+    return await Post.find({
         $or: [
-            { userAuthor: { $in: followingUsers }},
-            { userPageAuthor: { $in: followingPages }}
-        ]
+            {userAuthor: {$in: followingUsers}},
+            {userPageAuthor: {$in: followingPages}}
+        ],
+        privacyMode: 1
     })
-        .populate({
-            path: "likes",
-            select: "userType user userPage -_id",
-            populate: [
-                {
-                    path: "user",
-                    select: "username avatar email",
-                    populate: {
-                        path: "avatar",
-                        select: "url -_id"
-                    }
-                },
-                {
-                    path: "userPage",
-                    select: "pageName avatar",
-                    populate: {
-                        path: "avatar",
-                        select: "url -_id"
-                    }
-                },
-            ]
-        })
         .sort({updatedAt: -1})
         .skip(skip)
         .limit(limit)
-    return posts
+        .exec()
 }
 
 const getLikesPost = async (currentActorId, postId, {search = "", limit = 20, page = 1}) => {
@@ -230,9 +317,13 @@ const getLikesPost = async (currentActorId, postId, {search = "", limit = 20, pa
 
 
 export {
+    getPostById,
     createNewPost,
+    updatePost,
+    deletePost,
     likePost,
     unlikePost,
     getLikesPost,
-    getFeedPosts
+    getFeedPosts,
+    getUserPosts
 }

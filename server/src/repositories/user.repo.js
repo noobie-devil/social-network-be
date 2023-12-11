@@ -5,6 +5,8 @@ import {cleanData, getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {User, CollegeStudent, Lecturer} from "../models/user.model.js";
 import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
+import ResourceStorage from "../models/resourceStorage.model.js";
+import {deleteAssetResource, deleteAssetResourceWithRef} from "../services/assetResource.service.js";
 
 const respondFriendRequest = async ({friendShipId, receiverId, status}) => {
     const session = await mongoose.startSession()
@@ -198,9 +200,36 @@ const create = async (model, payload, session) => {
 
 const uploadAvatar = async(userId, avatar) => {
     const update = await User.findByIdAndUpdate(userId, { avatar }, { new: true})
-    console.log(update)
     if(!update) throw new NotFoundError()
     return update.toPublicData()
+}
+
+const removeAvatar = async(userId) => {
+    let user = await User.findById(userId)
+    if(!user) throw new NotFoundError()
+    const session = await mongoose.startSession()
+    session.startTransaction()
+    try {
+        if(user.avatar) {
+            const resourceId = user.avatar._id
+            await deleteAssetResourceWithRef({
+                resources: [resourceId]
+            })
+            user.avatar = undefined
+            user = await user.save({new: true, session})
+            await session.commitTransaction()
+            return user.toPublicData()
+        } else {
+            throw new BadRequestError()
+        }
+    } catch (err) {
+        console.log(err)
+        await session.abortTransaction()
+        throw err
+    } finally {
+        await session.endSession()
+    }
+
 }
 
 const updateUserById = async({
@@ -220,7 +249,7 @@ const updateUserById = async({
 
 export {
     sendFriendRequest, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
-    findById, updateUserById, create, findByEmail, uploadAvatar
+    findById, updateUserById, create, findByEmail, uploadAvatar, removeAvatar
 }
 
 

@@ -6,3 +6,9 @@ export const uploadAssetResource = async(req, res, next) => {
         data: await uploadService.uploadAssetResource(req)
     }).send(res)
 }
+
+// export const deleteAssetResource = async(req, res, next) => {
+//     new SuccessResponse({
+//         data:
+//     })
+// }

@@ -158,11 +158,17 @@ UserSchema.index({email: 1}, { sparse: true, unique: true})
 UserSchema.index({identityCode: 1}, {sparse: true, unique: true})
 UserSchema.index({username: 'text', firstName: 'text', lastName: 'text', homeTown: 'text'})
 UserSchema.pre('find', function() {
-    this.populate('avatar', 'url -_id')
+    this.populate('avatar', 'url')
 })
 UserSchema.pre('findOne', function() {
-    this.populate('avatar', 'url -_id')
+    this.populate('avatar', 'url')
 })
+UserSchema.pre('findOneAndUpdate', function() {
+    this.populate('avatar', 'url')
+})
+UserSchema.statics.findByIdWithoutPopulateAvatar = function (query) {
+    return this.findById(query)
+}
 
 const User = mongoose.model("User", UserSchema)
 const CollegeStudent = mongoose.model("CollegeStudent", CollegeStudentSchema)
