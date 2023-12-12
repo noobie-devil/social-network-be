@@ -19,6 +19,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "firebase": "^10.7.0",
+    "firebase-admin": "^12.0.0",
     "fluent-ffmpeg": "^2.1.2",
     "generate-password": "^1.7.1",
     "google-auth-library": "^9.2.0",
