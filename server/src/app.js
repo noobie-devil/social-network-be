@@ -15,6 +15,7 @@ import compression from "compression";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PORT = process.env.PORT || config.SERVER.PORT
 
 const options = {
     definition: {
@@ -40,7 +41,7 @@ const options = {
         ],
         servers: [
             {
-                url: 'http://localhost:3001/'
+                url: `https://localhost:${PORT}/`
             }
         ],
     },
@@ -48,20 +49,6 @@ const options = {
 
 }
 
-
-
-// const storage = multer.diskStorage({
-//     destination: function(req, file, cb) {
-//         cb(null, "public/assets");
-//     },
-//     filename: function(req, file, cb) {
-//         cb(null, file.originalname);
-//     }
-// });
-//
-// const upload = multer({ storage });
-
-// const specs = swaggerJSDoc(options);
 
 const app = express();
 const specs = swaggerJSDoc(options)
@@ -79,7 +66,6 @@ app
     .use("/assets", express.static(path.join(__dirname, 'public/assets')))
     .use(config.SERVER.FIRST_SEGMENT_URL, router)
     .use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
-    // .use('/api-doc', swaggerUi.serve, swaggerUi.setup(specs))
     .use(notFound)
     .use(errorHandler)
 

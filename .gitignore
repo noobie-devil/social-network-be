@@ -1,2 +1,5 @@
+.idea/
 /server/.env
 /server/node_modules/
+/server/etc/secrets/
+/server/src/public/uploadedResources/
