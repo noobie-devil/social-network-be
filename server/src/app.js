@@ -41,7 +41,7 @@ const options = {
         ],
         servers: [
             {
-                url: `https://localhost:${PORT}/`
+                url: `${config.SERVER.DEPLOY_URL}:${PORT}/`
             }
         ],
     },
