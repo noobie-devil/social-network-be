@@ -12,6 +12,8 @@ import config from './utils/global.config.js';
 import { notFound, errorHandler } from './middlewares/index.js';
 import router from './routes/index.js';
 import compression from "compression";
+import {asyncHandler} from "./core/utils/core.utils.js";
+import {OkResponse} from "./core/success/success.response.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,6 +65,11 @@ app
     .use(morgan(config.SERVER.MORGAN_STYLE))
     .use(compression())
     .use(cors())
+    .use("/", asyncHandler(async(req, res, next) => {
+        new OkResponse({
+            message: "Health check ok"
+        }).send(res)
+    }))
     .use("/assets", express.static(path.join(__dirname, 'public/assets')))
     .use(config.SERVER.FIRST_SEGMENT_URL, router)
     .use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
