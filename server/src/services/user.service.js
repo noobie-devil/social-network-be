@@ -74,6 +74,24 @@ export const getFriendRequests = async (req) => {
     return await userRepository.getFriendRequests({userId, search, limit, page})
 }
 
+export const userUpdateProfile = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    req.body['type'] = req.user.type
+    await updateUserSchema.validateAsync(req.body)
+    const username = req.body.username
+    if(!username && !username.trim().isEmpty()) {
+        const existUserName = await User.findOne({
+            _id: { $ne: req.user._id},
+            username
+        })
+        if(existUserName) throw new ValidationError({
+            message: "Username already exists",
+            statusCode: 409
+        })
+    }
+    return new userClasses[req.user.type](req.body).update(req.user._id)
+}
+
 export const updateUserById = async(req) => {
     const id = req.params.id
     const user = await findById(req)

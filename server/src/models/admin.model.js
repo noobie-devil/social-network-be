@@ -58,6 +58,29 @@ AdminSchema.methods.toPublicData = function(timestamps = false) {
     return obj
 }
 
+const adminFieldPopulated = [
+    {
+        path: "avatar",
+        select: "url"
+    },
+    {
+        path: "createdBy",
+        select: "username -_id"
+    },
+    {
+        path: "updatedBy",
+        select: "username -_id"
+    }
+]
+AdminSchema.pre('find', function() {
+    this.populate(adminFieldPopulated)
+})
+AdminSchema.pre('findOne', function() {
+    this.populate(adminFieldPopulated)
+})
+AdminSchema.pre('findOneAndUpdate', function() {
+    this.populate(adminFieldPopulated)
+})
 AdminSchema.pre('save', async function(next) {
     if(this.isNew && !this.username || this.username === "") {
         const emailSplit = this.email.split('@');
@@ -108,6 +131,27 @@ const AdminGroupSchema = new Schema({
 
 AdminGroupSchema.plugin(longTimestampsPlugin)
 AdminGroupSchema.plugin(removeVersionFieldPlugin)
+
+const adminGroupFieldPopulated = [
+    {
+        path: "createdBy",
+        select: "username -_id"
+    },
+    {
+        path: "updatedBy",
+        select: "username -_id"
+    }
+]
+
+AdminGroupSchema.pre('find', function() {
+    this.populate(adminGroupFieldPopulated)
+})
+AdminGroupSchema.pre('findOne', function() {
+    this.populate(adminGroupFieldPopulated)
+})
+AdminGroupSchema.pre('findOneAndUpdate', function() {
+    this.populate(adminGroupFieldPopulated)
+})
 
 const Admin = mongoose.model("Admin", AdminSchema)
 const AdminGroup = mongoose.model("AdminGroup", AdminGroupSchema)

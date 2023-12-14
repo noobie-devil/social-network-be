@@ -218,7 +218,7 @@ const getFeedPosts = async(userId, {page = 1, limit = 10}) => {
     followingUsers.push(userId)
     followingPages.push(userId)
     const skip = (page - 1) * limit
-    return await Post.find({
+    const posts = await Post.find({
         $or: [
             {userAuthor: {$in: followingUsers}},
             {userPageAuthor: {$in: followingPages}}
@@ -229,6 +229,9 @@ const getFeedPosts = async(userId, {page = 1, limit = 10}) => {
         .skip(skip)
         .limit(limit)
         .exec()
+    return {
+        posts
+    }
 }
 
 const getLikesPost = async (currentActorId, postId, {search = "", limit = 20, page = 1}) => {

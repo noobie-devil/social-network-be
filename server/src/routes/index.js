@@ -11,9 +11,19 @@ import assetResourceRouter from "./assetResource.routes.js";
 import postRouter from "./post.routes.js";
 import {asyncHandler} from "../core/utils/core.utils.js";
 import {OkResponse} from "../core/success/success.response.js";
+import {userLogin, userRefreshToken, userRegister} from "../controllers/access.controller.js";
+import {authentication} from "../middlewares/auth.middleware.js";
+import {imageResize, uploadAttachments} from "../middlewares/uploadImages.middleware.js";
+import {uploadAvatar} from "../controllers/user.controller.js";
 
 const router = express.Router()
-router.use('/auth', authRouter)
+// router.use('/login', asyncHandler(userLogin))
+// router.use('/register', asyncHandler(userRegister))
+// router.use('/refresh-token', asyncHandler(userRefreshToken))
+// router.use('/upload-avatar', authentication, uploadAttachments.fields([
+//     { name: 'images', maxCount: 1}
+// ]), imageResize, asyncHandler(uploadAvatar))
+router.use('', authRouter)
 router.use('/aauth', adminRouter)
 router.use('/permission', permissionRouter)
 router.use('/friends', friendRouter)

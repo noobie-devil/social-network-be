@@ -6,6 +6,6 @@ import {authentication} from "../middlewares/auth.middleware.js";
 const userRouter = express.Router();
 
 userRouter.get("/:id", authentication, getUserById);
-userRouter.post("/", asyncHandler(createUser))
+// userRouter.post("/", asyncHandler(createUser))
 userRouter.put("/:id", authentication, asyncHandler(updateUserById))
 export default userRouter;

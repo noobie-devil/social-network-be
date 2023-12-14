@@ -10,15 +10,6 @@ import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 
 const findAdminByEmail = async(email) => {
     return await Admin.findOne({email})
-        .populate({
-            path: 'createdBy',
-            select: 'username -_id'
-        })
-        .populate({
-            path: 'updatedBy',
-            select: 'username -_id'
-        })
-        // .select(unSelectUserFieldToPublic({ timestamps: true}))
         .exec()
 }
 const getAdmin = async({search = "", limit = 20, page = 1}) => {
@@ -27,14 +18,6 @@ const getAdmin = async({search = "", limit = 20, page = 1}) => {
         $or: [{ username: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }]
     }
     const admins = await Admin.find(filter)
-        .populate({
-            path: 'createdBy',
-            select: 'username -_id'
-        })
-        .populate({
-            path: 'updatedBy',
-            select: 'username -_id'
-        })
         .select(unSelectUserFieldToPublic({ timestamps: true}))
         .limit(limit)
         .skip(skip)
@@ -52,14 +35,6 @@ const getAdminGroup = async({search = "", limit = 20, page = 1}) => {
         groupName: new RegExp(search, 'i')
     }
     const groups = await AdminGroup.find(filter)
-        .populate({
-            path: 'createdBy',
-            select: 'username -_id'
-        })
-        .populate({
-            path: 'updatedBy',
-            select: 'username -_id'
-        })
         .limit(limit)
         .skip(skip)
         .lean()
@@ -224,7 +199,6 @@ const updateGroupForAdmin = async({aid, gid, updatedBy}, shouldRemove) => {
             existingGroup.updatedBy = updatedBy
             await existingGroup.save({session})
             existingAdmin = await existingAdmin.save({session})
-                .then(value => value.populate([{path: 'createdBy', select: 'username -_id'}, { path: 'updatedBy', select: 'username -_id'}]))
             await session.commitTransaction()
             return existingAdmin
         } catch (e) {

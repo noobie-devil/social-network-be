@@ -100,6 +100,120 @@
  *          properties:
  *              username:
  *                  type: string
+ *              avatar:
+ *                  properties:
+ *                      _id:
+ *                          type: string
+ *                      url:
+ *                          type: string
+ *      LikeDataResponse:
+ *          type: object
+ *          properties:
+ *              _id:
+ *                  type: string
+ *              userType:
+ *                  type: string
+ *                  enums: ["User", "UserPage"]
+ *              user:
+ *                  type: object
+ *                  properties:
+ *                      _id:
+ *                          type: string
+ *                      username:
+ *                          type: string
+ *                      email:
+ *                          type: string
+ *                      avatar:
+ *                          type: object
+ *                          properties:
+ *                              _id:
+ *                                  type: string
+ *                              url:
+ *                                  type: string
+ *              userPage:
+ *                  type: object
+ *                  properties:
+ *                      pageName:
+ *                          type: string
+ *                      avatar:
+ *                          type: object
+ *                          properties:
+ *                              _id:
+ *                                  type: string
+ *                              url:
+ *                                  type: string
+ *      PostDataResponse:
+ *          type: object
+ *          properties:
+ *              _id:
+ *                  type: string
+ *              userAuthor:
+ *                  type: object
+ *                  properties:
+ *                      _id:
+ *                          type: string
+ *                      username:
+ *                          type: string
+ *                      email:
+ *                          type: string
+ *                      avatar:
+ *                          type: object
+ *                          properties:
+ *                              _id:
+ *                                  type: string
+ *                              url:
+ *                                  type: string
+ *              userPageAuthor:
+ *                  type: object
+ *                  properties:
+ *                      pageName:
+ *                          type: string
+ *                      avatar:
+ *                          type: object
+ *                          properties:
+ *                              _id:
+ *                                  type: string
+ *                              url:
+ *                                  type: string
+ *              group:
+ *                  type: string
+ *                  description: This is group info when the post uploaded to group
+ *              content:
+ *                  type: string
+ *              postResources:
+ *                  type: array
+ *                  items:
+ *                      type: object
+ *                      properties:
+ *                          _id:
+ *                              type: string
+ *                          url:
+ *                              type: string
+ *                          resourceType:
+ *                              type: string
+ *                              enums: ["Image", "Video"]
+ *              likeCounts:
+ *                  type: integer
+ *              likes:
+ *                  type: array
+ *                  items:
+ *                      type: object
+ *
+ *
+ *      AssetResourceDataResponse:
+ *          type: object
+ *          properties:
+ *              _id:
+ *                  type: string
+ *              url:
+ *                  type: string
+ *              resourceType:
+ *                  type: string
+ *                  enum: ["Image", "Video"]
+ *              updatedAt:
+ *                  type: integer
+ *              createdAt:
+ *                  type: integer
  *      EnrollmentYearDataResponse:
  *          type: object
  *          properties:
@@ -272,8 +386,13 @@
  *                  type: string
  *                  description: dd/mm/yyyy
  *              avatar:
- *                  type: string
+ *                  type: object
  *                  description: đường dẫn ảnh
+ *                  properties:
+ *                      _id:
+ *                          type: string
+ *                      url:
+ *                          type: string
  *              status:
  *                  type: integer
  *                  description: -1,0,1. -1 với tài khoản chưa xét duyệt, 0 với tài khoản bị khóa, 1 với tài khoản đang hoạt động
@@ -364,7 +483,7 @@
 
 /**
  * @swagger
- * /api/v1/auth/login:
+ * /api/v1/login:
  *   post:
  *     summary: Login for users
  *     tags: [Auth]
@@ -395,7 +514,7 @@
 
 /**
  * @swagger
- * /api/v1/auth/register:
+ * /api/v1/register:
  *  post:
  *    summary: User register
  *    tags: [Auth]
@@ -424,7 +543,7 @@
 
 /**
  * @swagger
- * /api/v1/auth/refresh-token:
+ * /api/v1/refresh-token:
  *  post:
  *    summary: User refresh token
  *    tags: [Auth]
@@ -450,6 +569,179 @@
  *          description: Invalid input
  *      500:
  *          description: Internal error. Maybe unexpected error
+ */
+
+/**
+ * @swagger
+ * /api/v1/avatar:
+ *  put:
+ *    summary: Upload user avatar
+ *    tags: [Auth]
+ *    description: Endpoint for upload user avatar
+ *    consumes:
+ *      - "multipart/form-data"
+ *    requestBody:
+ *      content:
+ *          multipart/form-data:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      images:
+ *                          type: string
+ *                          format: binary
+ *    responses:
+ *      200:
+ *          description: Success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#components/schemas/UserDataResponse'
+ *      401:
+ *          description: Invalid token
+ *      403:
+ *          description: Forbidden Error
+ *      400:
+ *          description: Invalid input
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/avatar:
+ *  delete:
+ *    summary: Delete user avatar
+ *    tags: [Auth]
+ *    description: Endpoint for delete user avatar
+ *    responses:
+ *      200:
+ *          description: Success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#components/schemas/UserDataResponse'
+ *      401:
+ *          description: Invalid token
+ *      403:
+ *          description: Forbidden Error
+ *      400:
+ *          description: Invalid input
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ */
+
+
+
+/**
+ *  @swagger
+ *  tags:
+ *      name: Post
+ *      description: The Post API
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/posts/new-feeds:
+ *  get:
+ *    summary: Get posts in new feeds
+ *    tags: [Post]
+ *    description: ''
+ *    parameters:
+ *    - name: userType
+ *       in: query
+ *       description: The profile user want to use. Page or User.
+ *       required: false
+ *       schema:
+ *          type: string
+ *          enums: ["User", "UserPage"]
+ *     - name: page
+ *       in: query
+ *       description: The number of items to skip before starting to collect the result set
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: limit
+ *       in: query
+ *       description: The number of items to return.
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *                              properties:
+ *                                  admins:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: '#components/schemas/AdminDataResponse'
+ *                                  totalCount:
+ *                                      type: integer
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/uploads:
+ *  post:
+ *    summary: Upload Attachments For Post (Videos, Images)
+ *    tags: [Post]
+ *    description: Endpoint for upload post's attachments
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          multipart/form-data:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      images:
+ *                          type: array
+ *                          items:
+ *                              type: string
+ *                              format: binary
+ *                      videos:
+ *                          type: array
+ *                          items:
+ *                              type: string
+ *                              format: binary
+ *    responses:
+ *      200:
+ *          description: Login successfully
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      $ref: '#components/schemas/AssetResourceDataResponse'
+ *      401:
+ *          description: Invalid credentials
+ *      400:
+ *          description: Invalid input
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
  */
 
 
