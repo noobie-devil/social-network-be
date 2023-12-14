@@ -32,7 +32,7 @@ postRouter.delete('/:postId', asyncHandler(deletePost))
 
 // Like handlers
 postRouter.get('/:postId/likes', asyncHandler(getLikesPost))
-postRouter.put('/:postId/likes', asyncHandler(likePost))
+postRouter.post('/:postId/likes', asyncHandler(likePost))
 postRouter.delete('/:postId/likes', asyncHandler(unlikePost))
 
 export default postRouter

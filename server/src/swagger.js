@@ -2,6 +2,15 @@
  * @swagger
  * components:
  *  schemas:
+ *      CreatePostRequest:
+ *          type: object
+ *          properties:
+ *              content:
+ *                  type: string
+ *              postResource:
+ *                  type: array
+ *                  items:
+ *                      type: string
  *      LoginRequest:
  *          type: object
  *          required:
@@ -197,9 +206,17 @@
  *              likes:
  *                  type: array
  *                  items:
- *                      type: object
- *
- *
+ *                      $ref: '#components/schemas/LikeDataResponse'
+ *              sharedPost:
+ *                  type: string
+ *              privacyMode:
+ *                  type: integer
+ *              tags:
+ *                  type: array
+ *                  items:
+ *                      type: string
+ *              shares:
+ *                  type: integer
  *      AssetResourceDataResponse:
  *          type: object
  *          properties:
@@ -640,7 +657,6 @@
  *      description: The Post API
  */
 
-
 /**
  * @swagger
  * /api/v1/posts/new-feeds:
@@ -649,25 +665,25 @@
  *    tags: [Post]
  *    description: ''
  *    parameters:
- *    - name: userType
- *       in: query
- *       description: The profile user want to use. Page or User.
- *       required: false
- *       schema:
+ *      - name: userType
+ *        in: query
+ *        description: The profile user want to use. Page or User.
+ *        required: false
+ *        schema:
  *          type: string
  *          enums: ["User", "UserPage"]
- *     - name: page
- *       in: query
- *       description: The number of items to skip before starting to collect the result set
- *       required: false
- *       schema:
+ *      - name: page
+ *        in: query
+ *        description: The number of items to skip before starting to collect the result set
+ *        required: false
+ *        schema:
  *          type: integer
  *          minimum: 1
- *     - name: limit
- *       in: query
- *       description: The number of items to return.
- *       required: false
- *       schema:
+ *      - name: limit
+ *        in: query
+ *        description: The number of items to return.
+ *        required: false
+ *        schema:
  *          type: integer
  *          minimum: 1
  *    responses:
@@ -685,18 +701,235 @@
  *                          data:
  *                              type: object
  *                              properties:
- *                                  admins:
+ *                                  posts:
  *                                      type: array
  *                                      items:
- *                                          $ref: '#components/schemas/AdminDataResponse'
- *                                  totalCount:
- *                                      type: integer
+ *                                          $ref: '#components/schemas/PostDataResponse'
  *      400:
  *          description: Invalid input
  *      401:
  *          description: Invalid credentials
  *      403:
  *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/users/{userId}:
+ *  get:
+ *    summary: Get posts by user id
+ *    tags: [Post]
+ *    description: ''
+ *    parameters:
+ *      - name: page
+ *        in: query
+ *        description: The number of items to skip before starting to collect the result set
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *      - name: limit
+ *        in: query
+ *        description: The number of items to return.
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *                              properties:
+ *                                  posts:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: '#components/schemas/PostDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}:
+ *  get:
+ *    summary: Get posts by id
+ *    tags: [Post]
+ *    description: ''
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              $ref: '#components/schemas/PostDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts:
+ *  post:
+ *    summary: Create New Post
+ *    tags: [Post]
+ *    description: Create new post
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  $ref: '#components/schemas/CreatePostRequest'
+ *    responses:
+ *      201:
+ *          description: Created successfully
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              $ref: '#components/schemas/PostDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}:
+ *  put:
+ *    summary: Update post
+ *    tags: [Post]
+ *    description: ''
+ *    parameters:
+ *      - name: adminId
+ *        in: path
+ *        description: ID of admin to update
+ *        required: true
+ *        schema:
+ *          type: string
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  $ref: '#components/schemas/CreatePostRequest'
+ *    responses:
+ *      200:
+ *          description: Update post success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              $ref: '#components/schemas/PostDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}:
+ *  delete:
+ *    summary: Delete post
+ *    tags: [Post]
+ *    description: ''
+ *    parameters:
+ *      - name: adminId
+ *        in: path
+ *        description: ID of admin to update
+ *        required: true
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Delete success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                              default: "Delete success"
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      404:
+ *          description: Resource not found
+ *      409:
+ *          description: Validation error
  *      500:
  *          description: Internal error. Maybe unexpected error
  *    security:
@@ -744,6 +977,163 @@
  *      - bearerAuth: []
  */
 
+
+/**
+ *  @swagger
+ *  tags:
+ *      name: Like
+ *      description: The Like Post Handler API
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}/likes:
+ *  get:
+ *    summary: Get post's likes
+ *    tags: [Like]
+ *    description: ''
+ *    parameters:
+ *      - name: search
+ *        in: query
+ *        description: Search by username or pageName
+ *        required: false
+ *        schema:
+ *          type: string
+ *      - name: page
+ *        in: query
+ *        description: The number of items to skip before starting to collect the result set
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *      - name: limit
+ *        in: query
+ *        description: The number of items to return.
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *                              properties:
+ *                                  likes:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: '#components/schemas/LikeDataResponse'
+ *                                  likeCounts:
+ *                                      type: integer
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}/likes:
+ *  post:
+ *    summary: Like the post
+ *    tags: [Like]
+ *    description: Like the post
+ *    responses:
+ *      200:
+ *          description: Created successfully
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *                              properties:
+ *                                  likes:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: '#components/schemas/LikeDataResponse'
+ *                                  likeCounts:
+ *                                      type: integer
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}/likes:
+ *  delete:
+ *    summary: Unlike post
+ *    tags: [Like]
+ *    description: ''
+ *    responses:
+ *      200:
+ *          description: Unlike post success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *                              properties:
+ *                                  likes:
+ *                                      type: array
+ *                                      items:
+ *                                          $ref: '#components/schemas/LikeDataResponse'
+ *                                  likeCounts:
+ *                                      type: integer
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      404:
+ *          description: Resource not found
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
 
 /**
  *  @swagger

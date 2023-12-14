@@ -192,7 +192,7 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
 
 const getUserPosts = async(userId, {page = 1, limit = 10}) => {
     const skip = (page - 1) * limit
-    return await Post.find({
+    const posts = await Post.find({
         $or: [
             {userAuthor: {$in: userId}},
             {userPageAuthor: {$in: userId}}
@@ -203,6 +203,9 @@ const getUserPosts = async(userId, {page = 1, limit = 10}) => {
         .skip(skip)
         .limit(limit)
         .exec()
+    return {
+        posts
+    }
 }
 
 const getFeedPosts = async(userId, {page = 1, limit = 10}) => {
@@ -238,7 +241,7 @@ const getLikesPost = async (currentActorId, postId, {search = "", limit = 20, pa
     const skip = (page - 1) * limit
     const post = await Post.findById(postId)
     if(!post || post.privacyMode === 0) {
-        if(post && post.userAuthor && post.userAuthor.toString() === currentActorId.toString() || post.userPageAuthor && post.userPageAuthor.toString() === currentActorId.toString()) {
+        if(post && (post.userAuthor && post.userAuthor.toString() === currentActorId.toString() || post.userPageAuthor && post.userPageAuthor.toString() === currentActorId.toString())) {
 
         } else {
             throw new NotFoundError()
