@@ -64,7 +64,9 @@ app
     .use(helmet.permittedCrossDomainPolicies())
     .use(morgan(config.SERVER.MORGAN_STYLE))
     .use(compression())
-    .use(cors())
+    .use(cors({
+        origin: "*"
+    }))
     .use("/assets", express.static(path.join(__dirname, 'public/assets')))
     .use(config.SERVER.FIRST_SEGMENT_URL, router)
     .use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))

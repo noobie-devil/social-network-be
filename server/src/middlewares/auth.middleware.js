@@ -27,9 +27,9 @@ export const authentication = asyncHandler(async(req, res, next) => {
             return next()
         } catch (err) {
             if (err instanceof jwt.TokenExpiredError) {
-                throw new ForbiddenError("Token expired");
+                throw new InvalidTokenError("Token expired");
             } else if (err instanceof jwt.JsonWebTokenError) {
-                throw new InvalidTokenError("Invalid token");
+                throw new ForbiddenError("Invalid token");
             } else {
                 throw err;
             }
