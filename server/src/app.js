@@ -19,6 +19,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || config.SERVER.PORT
 
+const swaggerServerUrl = (url, port) => {
+    if(url.toString().endsWith(".com")) {
+        return url
+    }
+    return `${url}:${port}/`
+}
+
 const options = {
     definition: {
         openapi: '3.0.0',
@@ -43,7 +50,7 @@ const options = {
         ],
         servers: [
             {
-                url: `${config.SERVER.DEPLOY_URL}:${PORT}/`
+                url: swaggerServerUrl(config.SERVER.DEPLOY_URL, PORT)
             }
         ],
     },
