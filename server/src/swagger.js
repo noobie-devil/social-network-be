@@ -37,7 +37,7 @@
  *              - email
  *              - password
  *              - homeTown
- *              - birthDate
+ *              - birthdate
  *              - type
  *              - details
  *          properties:
@@ -53,7 +53,7 @@
  *                  type: string
  *              homeTown:
  *                  type: string
- *              birthDate:
+ *              birthdate:
  *                  type: string
  *              type:
  *                  $ref: '#components/schemas/UserType'
