@@ -6,7 +6,8 @@ const queryMajorSchema = Joi.object({
     page: Joi.number().integer().min(1).optional(),
     limit: Joi.number().integer().min(1).optional(),
     search: Joi.string().optional().allow(''),
-    lang: Joi.string().valid('vi', 'en').optional()
+    lang: Joi.string().valid('vi', 'en').optional(),
+    facultyId: Joi.string().optional().allow('')
 })
 const createMajorSchema = Joi.object({
     code: Joi.string()

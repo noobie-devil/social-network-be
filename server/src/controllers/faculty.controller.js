@@ -1,4 +1,5 @@
 import * as facultyService from '../services/faculty.service.js'
+import * as majorService from '../services/major.service.js'
 import {CreatedResponse, OkResponse} from "../core/success/success.response.js";
 
 
@@ -23,5 +24,11 @@ export const updateFaculty = async(req, res, next) => {
 export const deleteFaculty = async(req, res, next) => {
     new OkResponse({
         message: await facultyService.deleteFaculty(req)
+    }).send(res)
+}
+
+export const getMajorsByFaculty = async (req, res, next) => {
+    new OkResponse({
+        data: await majorService.getMajorByFacultyId(req)
     }).send(res)
 }

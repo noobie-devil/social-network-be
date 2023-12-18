@@ -2506,6 +2506,12 @@
  *       required: false
  *       schema:
  *          type: string
+ *     - name: facultyId
+ *       in: query
+ *       description: Filter by faculty
+ *       required: false
+ *       schema:
+ *          type: string
  *    responses:
  *      200:
  *          description: Successful operation

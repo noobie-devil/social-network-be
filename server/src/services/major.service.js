@@ -31,3 +31,15 @@ export const getMajor = async(req) => {
     await queryMajorSchema.validateAsync(req.query)
     return await majorRepository.getMajor(req.query)
 }
+
+const getMajorByFacultyId = async(req) => {
+    const facultyId = req.params.facultyId
+    validateMongodbId(facultyId)
+    await queryMajorSchema.validateAsync(req.query)
+    req.query.facultyId = facultyId
+    return await majorRepository.getMajorByFacultyId(req.query)
+}
+
+export {
+    getMajorByFacultyId
+}

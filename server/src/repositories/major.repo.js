@@ -63,10 +63,38 @@ const deleteMajor = async (majorId) => {
     return "Delete success"
 }
 
-const getMajor = async({search = "", limit = 20, page = 1, lang = "vi"}) => {
+const getMajor = async({search = "", limit = 20, page = 1, lang = "vi", facultyId = ""}) => {
     const skip = (page - 1) * limit
     const filter = {
         $or: [{ code: new RegExp(search, 'i') }, { [`name.${lang}`]: new RegExp(search, 'i')}]
+    }
+    if(facultyId && facultyId.trim() !== "") {
+        filter.faculty = facultyId
+    }
+    const majors = await Major.find(filter)
+        .populate({path: 'faculty', select: "code name"})
+        .populate([{
+            path: "updatedBy",
+            select: "username -_id"
+        },{
+            path: "createdBy",
+            select: "username -_id"
+        }])
+        .limit(limit)
+        .skip(skip)
+        .lean()
+    const count = await Major.countDocuments(filter)
+    return {
+        majors,
+        totalCount: count
+    }
+}
+
+const getMajorByFacultyId = async({search = "", limit = 20, page = 1, lang = "vi", facultyId}) => {
+    const skip = (page - 1) * limit
+    const filter = {
+        $or: [{ code: new RegExp(search, 'i') }, { [`name.${lang}`]: new RegExp(search, 'i')}],
+        faculty: facultyId
     }
     const majors = await Major.find(filter)
         .populate({path: 'faculty', select: "code name"})
@@ -127,5 +155,6 @@ export {
     createMajor,
     updateMajor,
     deleteMajor,
-    getMajor
+    getMajor,
+    getMajorByFacultyId
 }
