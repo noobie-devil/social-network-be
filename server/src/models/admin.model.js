@@ -70,6 +70,10 @@ const adminFieldPopulated = [
     {
         path: "updatedBy",
         select: "username -_id"
+    },
+    {
+        path: "group",
+        select: "groupName"
     }
 ]
 AdminSchema.pre('find', function() {
