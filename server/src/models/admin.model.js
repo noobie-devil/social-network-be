@@ -58,7 +58,7 @@ AdminSchema.methods.toPublicData = function(timestamps = false) {
     return obj
 }
 
-const adminFieldPopulated = [
+export const adminFieldPopulated = [
     {
         path: "avatar",
         select: "url"
@@ -76,15 +76,16 @@ const adminFieldPopulated = [
         select: "groupName"
     }
 ]
-AdminSchema.pre('find', function() {
-    this.populate(adminFieldPopulated)
-})
-AdminSchema.pre('findOne', function() {
-    this.populate(adminFieldPopulated)
-})
-AdminSchema.pre('findOneAndUpdate', function() {
-    this.populate(adminFieldPopulated)
-})
+
+// AdminSchema.pre('find', function() {
+//     this.populate(adminFieldPopulated)
+// })
+// AdminSchema.pre('findOne', function() {
+//     this.populate(adminFieldPopulated)
+// })
+// AdminSchema.pre('findOneAndUpdate', function() {
+//     this.populate(adminFieldPopulated)
+// })
 AdminSchema.pre('save', async function(next) {
     if(this.isNew && !this.username || this.username === "") {
         const emailSplit = this.email.split('@');
@@ -148,13 +149,13 @@ const adminGroupFieldPopulated = [
 ]
 
 AdminGroupSchema.pre('find', function() {
-    this.populate(adminGroupFieldPopulated)
+    // this.populate(adminGroupFieldPopulated)
 })
 AdminGroupSchema.pre('findOne', function() {
-    this.populate(adminGroupFieldPopulated)
+    // this.populate(adminGroupFieldPopulated)
 })
 AdminGroupSchema.pre('findOneAndUpdate', function() {
-    this.populate(adminGroupFieldPopulated)
+    // this.populate(adminGroupFieldPopulated)
 })
 
 const Admin = mongoose.model("Admin", AdminSchema)

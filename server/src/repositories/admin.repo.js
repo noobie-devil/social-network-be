@@ -1,4 +1,4 @@
-import {Admin, AdminGroup} from "../models/admin.model.js";
+import {Admin, adminFieldPopulated, AdminGroup} from "../models/admin.model.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
@@ -18,6 +18,7 @@ const getAdmin = async({search = "", limit = 20, page = 1}) => {
         $or: [{ username: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }]
     }
     const admins = await Admin.find(filter)
+        .populate(adminFieldPopulated)
         .select(unSelectUserFieldToPublic({ timestamps: true}))
         .limit(limit)
         .skip(skip)
@@ -35,6 +36,10 @@ const getAdminGroup = async({search = "", limit = 20, page = 1}) => {
         groupName: new RegExp(search, 'i')
     }
     const groups = await AdminGroup.find(filter)
+        .populate([
+            {path: "createdBy", select: "username -_id"},
+            {path: "updatedBy", select: "username -_id"}
+        ])
         .limit(limit)
         .skip(skip)
         .lean()
@@ -56,10 +61,7 @@ const createAdmin = async(payload) => {
     return await new Admin(payload)
         .save()
         .then(async value => {
-            await value.populate([
-                {path: "createdBy", select: "username -_id"},
-                {path: "updatedBy", select: "username -_id"}
-            ])
+            await value.populate(adminFieldPopulated)
             const valueObject = value.toObject()
             delete valueObject.password
             return valueObject
@@ -91,6 +93,12 @@ const changeUsername = async({username}, aid) => {
     })
     adminToUpdate.username = username
     await adminToUpdate.save()
+        .then(async value => {
+            await value.populate(adminFieldPopulated)
+            const valueObject = value.toObject()
+            delete valueObject.password
+            return valueObject
+        })
     return adminToUpdate
 }
 
@@ -199,6 +207,12 @@ const updateGroupForAdmin = async({aid, gid, updatedBy}, shouldRemove) => {
             existingGroup.updatedBy = updatedBy
             await existingGroup.save({session})
             existingAdmin = await existingAdmin.save({session})
+                .then(async value => {
+                    await value.populate(adminFieldPopulated)
+                    const valueObject = value.toObject()
+                    delete valueObject.password
+                    return valueObject
+                })
             await session.commitTransaction()
             return existingAdmin
         } catch (e) {
