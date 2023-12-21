@@ -7,7 +7,7 @@
  *          properties:
  *              content:
  *                  type: string
- *              postResource:
+ *              postResources:
  *                  type: array
  *                  items:
  *                      type: string
