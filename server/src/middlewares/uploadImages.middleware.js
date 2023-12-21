@@ -59,8 +59,9 @@ export const imageResize = async(req, res, next) => {
                 await checkFileSize(file.path)
                 await sharp(file.path).resize(500, 500).toFormat('jpeg').jpeg({
                     quality: 90
-                }).toFile(`${file.destination}/images/${file.filename}`);
-                fs.unlinkSync(`${file.destination}/images/${file.filename}`);
+                }).toFile(path.join(__dirname, `../public/uploadedResources/images/${file.filename}`))
+                file.path = path.join(__dirname, `../public/uploadedResources/images/${file.filename}`)
+                fs.unlinkSync(path.join(__dirname, `../public/uploadedResources/${file.filename}`));
             }
         })
     );

@@ -2,6 +2,7 @@ import {firebaseStorageDelete, firebaseStorageDeleteAndRef, firebaseStorageUploa
 import ResourceStorage, {ResourceType} from "../models/resourceStorage.model.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
+import * as fs from "fs";
 
 
 const deleteAssetResource = async({resources}) => {
@@ -62,6 +63,7 @@ const uploadAssetResource = async(req) => {
         if(Object.hasOwnProperty.call(files, key)) {
             const fileArray = files[key]
             for(const file of fileArray) {
+                console.log('upload file from: ' + file.path)
                 const {url} = await uploader(file)
                 const resourceType = key === 'images' ? ResourceType.IMAGE : ResourceType.VIDEO
                 const resource = new ResourceStorage({
@@ -69,6 +71,7 @@ const uploadAssetResource = async(req) => {
                 })
                 await resource.save()
                 resources.push(resource)
+                fs.unlinkSync(file.path)
             }
         }
     }
