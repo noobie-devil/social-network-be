@@ -10,6 +10,7 @@ import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 
 const findAdminByEmail = async(email) => {
     return await Admin.findOne({email})
+        .populate(adminFieldPopulated)
         .exec()
 }
 const getAdmin = async({search = "", limit = 20, page = 1}) => {

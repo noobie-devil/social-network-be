@@ -102,6 +102,8 @@ const login = async(req, isAdmin) => {
         privateKey,
         publicKey
     }, isAdmin)
+    foundUser = foundUser.toObject()
+    delete foundUser.password
     return {
         user: foundUser,
         tokens
