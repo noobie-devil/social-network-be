@@ -53,6 +53,13 @@ const changeAdminPasswordSchema = Joi.object({
         .max(256)
 })
 
+const updateAdminSchema = Joi.object({
+    groupName: Joi.string()
+        .required()
+        .min(1)
+        .max(32)
+})
+
 const changeAdminUsernameSchema = Joi.object({
     username: Joi.string()
         .required()
@@ -63,6 +70,7 @@ const changeAdminUsernameSchema = Joi.object({
 export {
     queryAdminSchema,
     createAdminSchema,
+    updateAdminSchema,
     createAdminGroupSchema,
     updateAdminToGroupSchema,
     updateAdminGroupSchema,

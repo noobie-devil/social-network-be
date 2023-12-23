@@ -1418,6 +1418,59 @@
 /**
  * @swagger
  * /api/v1/aauth/admin/{adminId}:
+ *  put:
+ *    summary: Change group for admin
+ *    tags: [Admin]
+ *    description: ''
+ *    parameters:
+ *      - name: adminId
+ *        in: path
+ *        description: Admin Id
+ *        required: true
+ *        schema:
+ *          type: string
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      groupName:
+ *                          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              $ref: '#components/schemas/AdminDataResponse'
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      404:
+ *          description: Resource not found
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/aauth/admin/{adminId}:
  *  delete:
  *    summary: Delete admin
  *    tags: [Admin]

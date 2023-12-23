@@ -14,6 +14,13 @@ export const createAdmin = async(req, res, next) => {
     }).send(res)
 }
 
+export const updateAdmin = async (req, res, next) => {
+    new SuccessResponse({
+        message: "Updated successfully",
+        data: await adminService.updateAdmin(req)
+    }).send(res)
+}
+
 export const changeAdminPassword = async(req, res, next) => {
     new SuccessResponse({
         message: await adminService.changeAdminPassword(req)

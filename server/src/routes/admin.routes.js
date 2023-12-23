@@ -5,7 +5,7 @@ import {
     createAdmin,
     createAdminGroup, deleteAdmin, deleteAdminGroup,
     getAdmin, getAdminGroup,
-    removeFromGroup,
+    removeFromGroup, updateAdmin,
     updateAdminGroup
 } from "../controllers/admin.controller.js";
 import {authentication} from "../middlewares/auth.middleware.js";
@@ -25,6 +25,7 @@ const adminSegmentRouter = express.Router()
 adminSegmentRouter.use(permissionMiddleware)
 adminSegmentRouter.get('/', asyncHandler(getAdmin))
 adminSegmentRouter.post('/', asyncHandler(createAdmin))
+adminSegmentRouter.put('/:adminId', asyncHandler(updateAdmin))
 adminSegmentRouter.delete('/:adminId', asyncHandler(deleteAdmin))
 
 // adminSegmentRouter.put('/:adminId/change-password', asyncHandler(changeAdminPassword))

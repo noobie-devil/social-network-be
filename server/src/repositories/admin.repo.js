@@ -144,6 +144,8 @@ const createAdminGroup = async(payload) => {
 
 }
 
+
+
 const updateAdminGroup = async(gid, updateData) => {
     try {
         updateData = cleanNullAndEmptyData(updateData)
@@ -236,9 +238,23 @@ const removeFromGroup = async({aid, gid, updatedBy}) => {
     return await updateGroupForAdmin({aid, gid, updatedBy}, true)
 }
 
+const updateAdmin = async ({ groupName }, aid) => {
+    let adminToUpdate = await getById(aid)
+    adminToUpdate.group = (await AdminGroup.findOne({ groupName }))._id
+    await adminToUpdate.save()
+        .then(async value => {
+            await value.populate(adminFieldPopulated)
+            const valueObject = value.toObject()
+            delete valueObject.password
+            return valueObject
+        })
+    return adminToUpdate
+}
+
 export {
     getAdmin,
     createAdmin,
+    updateAdmin,
     changePassword,
     changeUsername,
     deleteAdmin,

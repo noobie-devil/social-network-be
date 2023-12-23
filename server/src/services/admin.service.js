@@ -2,7 +2,7 @@ import {
     changeAdminPasswordSchema,
     changeAdminUsernameSchema,
     createAdminGroupSchema,
-    createAdminSchema, queryAdminSchema, updateAdminGroupSchema,
+    createAdminSchema, queryAdminSchema, updateAdminGroupSchema, updateAdminSchema,
     updateAdminToGroupSchema
 } from "../schemaValidate/admin.schema.js"
 import * as adminRepo from "../repositories/admin.repo.js"
@@ -36,6 +36,13 @@ const createAdmin = async(req) => {
         console.log(e)
     }
     return admin
+}
+
+const updateAdmin = async (req) => {
+    const aid = req.params.adminId
+    validateMongodbId(aid)
+    await updateAdminSchema.validateAsync(req.body)
+    return await adminRepo.updateAdmin(req.body, aid)
 }
 
 const changeAdminUsername = async(req) => {
@@ -104,6 +111,7 @@ const removeFromGroup = async(req) => {
 export {
     createAdmin,
     getAdmin,
+    updateAdmin,
     changeAdminPassword,
     changeAdminUsername,
     deleteAdmin,
