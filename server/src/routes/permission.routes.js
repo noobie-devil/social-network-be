@@ -17,7 +17,7 @@ permissionRouter.use(permissionMiddleware)
 permissionRouter.get('/resource', asyncHandler(getResource))
 permissionRouter.post('/resource', asyncHandler(createResource))
 permissionRouter.put('/resource/:resourceId', asyncHandler(updateResource))
-permissionRouter.delete('/resource/:id', asyncHandler(deleteResource))
+permissionRouter.delete('/resource/:resourceId', asyncHandler(deleteResource))
 
 permissionRouter.get('/resource-permission', asyncHandler(getResourcePermission))
 permissionRouter.post('/resource-permission', asyncHandler(createResourcePermission))
