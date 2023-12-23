@@ -13,10 +13,13 @@ const findAdminByEmail = async(email) => {
         .populate(adminFieldPopulated)
         .exec()
 }
-const getAdmin = async({search = "", limit = 20, page = 1}) => {
+const getAdmin = async({search = "", limit = 20, page = 1, group = ""}) => {
     const skip = (page - 1) * limit
     const filter = {
         $or: [{ username: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }]
+    }
+    if(group) {
+        filter.group = group
     }
     const admins = await Admin.find(filter)
         .populate(adminFieldPopulated)

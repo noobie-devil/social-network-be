@@ -2,6 +2,13 @@ import Joi from "joi";
 import {isValidMongoId} from "../utils/global.utils.js";
 
 
+const queryAdminSchema = Joi.object({
+    page: Joi.number().integer().min(1).optional(),
+    limit: Joi.number().integer().min(1).optional(),
+    search: Joi.string().optional().allow(''),
+    group: Joi.string().optional()
+})
+
 const createAdminSchema = Joi.object({
     email: Joi.string()
         .email({
@@ -54,6 +61,7 @@ const changeAdminUsernameSchema = Joi.object({
 })
 
 export {
+    queryAdminSchema,
     createAdminSchema,
     createAdminGroupSchema,
     updateAdminToGroupSchema,

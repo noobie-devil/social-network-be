@@ -1337,6 +1337,9 @@
  *       required: false
  *       schema:
  *          type: string
+ *     - name: group
+ *       in: query
+ *       required: false
  *    responses:
  *      200:
  *          description: Successful operation

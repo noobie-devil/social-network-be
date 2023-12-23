@@ -2,7 +2,7 @@ import {
     changeAdminPasswordSchema,
     changeAdminUsernameSchema,
     createAdminGroupSchema,
-    createAdminSchema, updateAdminGroupSchema,
+    createAdminSchema, queryAdminSchema, updateAdminGroupSchema,
     updateAdminToGroupSchema
 } from "../schemaValidate/admin.schema.js"
 import * as adminRepo from "../repositories/admin.repo.js"
@@ -13,7 +13,7 @@ import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.j
 
 
 const getAdmin = async(req) => {
-    await baseQuerySchema.validateAsync(req.query)
+    await queryAdminSchema.validateAsync(req.query)
     return await adminRepo.getAdmin(req.query)
 }
 
