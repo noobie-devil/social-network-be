@@ -7,6 +7,7 @@ import {User, CollegeStudent, Lecturer} from "../models/user.model.js";
 import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 import ResourceStorage from "../models/resourceStorage.model.js";
 import {deleteAssetResource, deleteAssetResourceWithRef} from "../services/assetResource.service.js";
+import {adminFieldPopulated} from "../models/admin.model.js";
 
 const respondFriendRequest = async ({friendShipId, receiverId, status}) => {
     const session = await mongoose.startSession()
@@ -178,8 +179,46 @@ const findUserByEmail = async ({email, select = {
 }
 
 const findByEmail = async(email) => {
+    // let user = await User.findOne({ email })
+    // let populatePaths = [
+    //     {
+    //         path: "faculty",
+    //         select: "code name"
+    //     },
+    //     {
+    //         path: "major",
+    //         select: "code name"
+    //     },
+    //     {
+    //         path: "registeredMajor",
+    //         select: "code name"
+    //     },
+    //     {
+    //         path: "enrollmentYear",
+    //         select: "name startYear"
+    //     }
+    // ]
+    // if(user.details && user.type) {
+    //     switch (user.type) {
+    //         case 1:
+    //             user.details = await CollegeStudent.findById(user.details)
+    //             break
+    //         case 2:
+    //
+    //             break
+    //         case 3:
+    //
+    //             break
+    //     }
+    // }
+    // if(populatePaths.length > 0) {
+    //     console.log(populatePaths)
+    //     console.log('populate user')
+    //     user = await User.populate(user, populatePaths)
+    //     console.log(user)
+    // }
+    // return user
     return await User.findOne({email})
-        // .select(unSelectUserFieldToPublic({timestamps: true}))
         .exec()
 }
 
@@ -190,7 +229,8 @@ const findById = async(id) => {
 }
 
 const create = async (model, payload, session) => {
-    const user = await model.create([payload], {session})
+    console.log("create payload: " + payload)
+    const user = await model.create([payload], {session, _id: false})
     if(model === User) {
         console.log(user)
         return user[0].toPublicData()

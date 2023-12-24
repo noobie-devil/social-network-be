@@ -531,6 +531,34 @@
 
 /**
  * @swagger
+ * /api/v1/logout:
+ *   delete:
+ *     summary: Logout for users
+ *     tags: [Auth]
+ *     descriptions: Endpoint for user logout
+ *     responses:
+ *      200:
+ *          description: Delete success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                              default: "Logout success"
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ */
+
+/**
+ * @swagger
  * /api/v1/register:
  *  post:
  *    summary: User register

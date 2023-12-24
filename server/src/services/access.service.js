@@ -12,7 +12,7 @@ import KeyToken from "../models/keyToken.model.js";
 import {loginSchema, refreshTokenSchema} from "../schemaValidate/auth.schema.js";
 
 
-const logout = async({keystore}) => {
+const logout = async(keystore) => {
     return await tokenService.removeKeyById(keystore._id)
 }
 

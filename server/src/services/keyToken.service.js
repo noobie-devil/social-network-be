@@ -1,5 +1,6 @@
 import KeyToken from "../models/keyToken.model.js";
 import mongoose from "mongoose";
+import {BadRequestError} from "../core/errors/badRequest.error.js";
 
 const createKeyToken = async ({userId, publicKey, privateKey, refreshToken}, isAdmin) => {
     const filter = isAdmin ? { admin: userId } : { user: userId }
@@ -18,7 +19,12 @@ const findByAdminId = async(aid) => {
 }
 
 const removeKeyById = async(id) => {
-    return await KeyToken.deleteOne(id).lean().exec()
+    const deletedKeystore =  await KeyToken.deleteOne(id).lean().exec()
+    if(!deletedKeystore) {
+        throw new BadRequestError()
+    }
+    return "Logout success"
+
 }
 
 const findByRefreshTokenUsed = async(refreshToken) => {
