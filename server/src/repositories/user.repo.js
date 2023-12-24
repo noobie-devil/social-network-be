@@ -182,14 +182,6 @@ const findByEmail = async(email) => {
     let user = await User.findOne({ email })
     if(!user) throw new NotFoundError()
     let populatePaths = []
-    if(user.type === 3 || user.type === 1) {
-        populatePaths.push(
-            {
-                path: "enrollmentYear",
-                select: "name startYear"
-            }
-        )
-    }
     if(user.type === 3) {
         populatePaths.push({
             path: "registeredMajor",
