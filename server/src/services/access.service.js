@@ -9,11 +9,19 @@ import {ForbiddenError} from "../core/errors/forbidden.error.js";
 import {InvalidTokenError} from "../core/errors/invalidToken.error.js";
 import jwt from "jsonwebtoken";
 import KeyToken from "../models/keyToken.model.js";
-import {loginSchema, refreshTokenSchema} from "../schemaValidate/auth.schema.js";
+import {loginSchema, logoutRequestSchema, refreshTokenSchema} from "../schemaValidate/auth.schema.js";
 
 
 const logout = async(keystore) => {
     return await tokenService.removeKeyById(keystore._id)
+}
+
+const logoutWithParams = async(req) => {
+    await logoutRequestSchema.validateAsync(req.body)
+    const decodedUser = jwt.decode(req.body.accessToken)
+    const keystore = await tokenService.findByUserId(decodedUser.user_id)
+    if(!keystore) throw new InvalidCredentialsError()
+    return await logout(keystore)
 }
 
 export const refreshTokenHandler = async(req, isAdmin) => {
@@ -115,5 +123,5 @@ const register = async(req) => {
 
 
 export {
-    login, register, logout
+    login, register, logout, logoutWithParams
 }

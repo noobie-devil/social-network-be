@@ -182,12 +182,13 @@ class CollegeStudentDTO extends UserDTO {
         session.startTransaction()
         try {
             // const newCollegeStudent = await CollegeStudent.create([this.details], {session})
-            const newCollegeStudent = await userRepository.create(
+            const documentId = new mongoose.Types.ObjectId()
+            await userRepository.create(
                 CollegeStudent,
-                this.details,
+                {...this.details, _id: documentId},
                 session
             )
-            const userCreated = await super.create(newCollegeStudent._id, session)
+            const userCreated = await super.create(documentId, session)
             await session.commitTransaction()
             return userCreated
         } catch (e) {
@@ -230,12 +231,13 @@ class LecturerDTO extends UserDTO {
         session.startTransaction()
         try {
             // const newLecturer = await Lecturer.create([this.details], {session})
-            const newLecturer = await userRepository.create(
+            const documentId = new mongoose.Types.ObjectId()
+            await userRepository.create(
                 Lecturer,
-                [this.details],
+                {...this.details, _id: documentId},
                 session
             )
-            const userCreated = await super.create(newLecturer._id, session)
+            const userCreated = await super.create(documentId, session)
             await session.commitTransaction()
             return userCreated
         } catch (e) {
@@ -254,12 +256,13 @@ class CandidateDTO extends UserDTO {
         session.startTransaction()
         try {
             // const newCandidate = await Candidate.create([this.details], {session})
-            const newCandidate = await userRepository.create(
+            const documentId = new mongoose.Types.ObjectId()
+            await userRepository.create(
                 Candidate,
-                this.details,
+                {...this.details, _id: documentId},
                 session
             )
-            const userCreated = await super.create(newCandidate._id, session)
+            const userCreated = await super.create(documentId, session)
             await session.commitTransaction()
             return userCreated
         } catch (e) {

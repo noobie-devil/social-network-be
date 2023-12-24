@@ -3,7 +3,7 @@ import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
 import {cleanData, getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
-import {User, CollegeStudent, Lecturer} from "../models/user.model.js";
+import {User, CollegeStudent, Lecturer, Candidate} from "../models/user.model.js";
 import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 import ResourceStorage from "../models/resourceStorage.model.js";
 import {deleteAssetResource, deleteAssetResourceWithRef} from "../services/assetResource.service.js";
@@ -179,47 +179,65 @@ const findUserByEmail = async ({email, select = {
 }
 
 const findByEmail = async(email) => {
-    // let user = await User.findOne({ email })
-    // let populatePaths = [
-    //     {
-    //         path: "faculty",
-    //         select: "code name"
-    //     },
-    //     {
-    //         path: "major",
-    //         select: "code name"
-    //     },
-    //     {
-    //         path: "registeredMajor",
-    //         select: "code name"
-    //     },
-    //     {
-    //         path: "enrollmentYear",
-    //         select: "name startYear"
-    //     }
-    // ]
-    // if(user.details && user.type) {
-    //     switch (user.type) {
-    //         case 1:
-    //             user.details = await CollegeStudent.findById(user.details)
-    //             break
-    //         case 2:
-    //
-    //             break
-    //         case 3:
-    //
-    //             break
-    //     }
-    // }
-    // if(populatePaths.length > 0) {
-    //     console.log(populatePaths)
-    //     console.log('populate user')
-    //     user = await User.populate(user, populatePaths)
-    //     console.log(user)
-    // }
-    // return user
-    return await User.findOne({email})
-        .exec()
+    let user = await User.findOne({ email })
+    if(!user) throw new NotFoundError()
+    let populatePaths = []
+    if(user.type === 3 || user.type === 1) {
+        populatePaths.push(
+            {
+                path: "enrollmentYear",
+                select: "name startYear"
+            }
+        )
+    }
+    if(user.type === 3) {
+        populatePaths.push({
+            path: "registeredMajor",
+                select: "code name"
+        })
+    }
+    if(user.type === 2) {
+        populatePaths.push({
+            path: "major",
+            select: "code name"
+        },)
+    }
+    if(user.type === 1) {
+        populatePaths.push(
+            {
+                path: "faculty",
+                select: "code name"
+            },
+            {
+                path: "major",
+                select: "code name"
+            },
+            {
+                path: "enrollmentYear",
+                select: "name startYear"
+            }
+        )
+    }
+    if(user.details && user.type) {
+        switch (user.type) {
+            case 1:
+                user.details = await CollegeStudent.findById(user._id)
+                    .populate(populatePaths)
+                    .select("_id")
+                break
+            case 2:
+                user.details = await Lecturer.findById(user._id)
+                    .populate(populatePaths)
+                    .select("_id")
+                break
+            case 3:
+                user.details = await Candidate.findById(user._id)
+                    .populate(populatePaths)
+                    .select("_id")
+                break
+        }
+    }
+    return user
 }
 
 const findById = async(id) => {

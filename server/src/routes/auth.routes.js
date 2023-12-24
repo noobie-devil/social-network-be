@@ -9,7 +9,7 @@ import {userUpdateProfile} from "../services/user.service.js";
 const authRouter = express.Router()
 
 authRouter.post('/login', asyncHandler(userLogin))
-authRouter.delete('/logout', authentication, asyncHandler(logout))
+authRouter.delete('/logout', asyncHandler(logout))
 authRouter.post('/register', asyncHandler(userRegister))
 authRouter.post('/refresh-token', asyncHandler(userRefreshToken))
 authRouter.put('/avatar', authentication, uploadAttachments.fields([

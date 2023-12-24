@@ -3,7 +3,7 @@ import * as accessService from "../services/access.service.js";
 
 export const logout = async(req, res, next) => {
     new SuccessResponse({
-        message: await accessService.logout(req.keystore)
+        message: await accessService.logoutWithParams(req)
     }).send(res)
 }
 

@@ -14,6 +14,10 @@ const refreshTokenSchema = Joi.object({
     refreshToken: Joi.string().required()
 });
 
+const logoutRequestSchema = Joi.object({
+    accessToken: Joi.string().required()
+})
+
 
 const registerSchema = Joi.object({
     firstName: Joi.string().required().min(2).max(50),
@@ -28,5 +32,6 @@ const registerSchema = Joi.object({
 export {
     loginSchema,
     registerSchema,
-    refreshTokenSchema
+    refreshTokenSchema,
+    logoutRequestSchema
 }

@@ -35,7 +35,7 @@ resourcePermissionRouter.put('/:resourcePermissionId', asyncHandler(updatePermis
 resourcePermissionRouter.delete('/:resourcePermissionId', asyncHandler(deletePermission))
 
 permissionRouter.use('/resource', resourceSegmentRouter)
-permissionRouter.use('/resource-permission', resourceSegmentRouter)
+permissionRouter.use('/resource-permission', resourcePermissionRouter)
 
 
 // permissionRouter.get('/resource-permission', asyncHandler(getResourcePermission))

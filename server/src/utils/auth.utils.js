@@ -4,6 +4,7 @@ import {findByUserId} from "../services/keyToken.service.js";
 import {asyncHandler} from "../core/utils/core.utils.js";
 import {Admin} from "../models/admin.model.js";
 import { config } from 'dotenv';
+import {CollegeStudent, User} from "../models/user.model.js";
 
 config();
 export const createTokenPair = async (payload, publicKey, privateKey) => {
@@ -49,6 +50,19 @@ export const verifyJwt = async(token, keySecret) => {
     return jwt.verify(token, keySecret)
 }
 
+export const deleteUser = async() => {
+    const userIdToExclude = '65805850858ecf3afecb2a89'
+    await User.deleteMany({ _id: { $ne: userIdToExclude }})
+        .exec()
+        .then((result) => {
+            console.log(`Deleted ${result.deletedCount} records in User`)
+        })
+    await CollegeStudent.deleteMany({ _id: { $ne: userIdToExclude }})
+        .exec()
+        .then((result) => {
+            console.log(`Deleted ${result.deletedCount} records in CollegeStudent.`)
+        })
+}
 
 export const defaultsCreate = async() => {
     const defaultUname = process.env['DEFAULT_SYSUNAME']
