@@ -20,6 +20,8 @@ const createAdminSchema = Joi.object({
         .required()
         .min(8)
         .max(256),
+    groupName: Joi.string()
+        .required()
 })
 
 const createAdminGroupSchema = Joi.object({

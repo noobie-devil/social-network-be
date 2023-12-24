@@ -61,7 +61,11 @@ const createAdmin = async(payload) => {
         message: 'Already exists this email',
         statusCode: 409
     })
-
+    payload = {
+        email: payload.email,
+        password: payload.password,
+        group: (await AdminGroup.findOne({ groupName: payload.groupName})._id)
+    }
     return await new Admin(payload)
         .save()
         .then(async value => {
