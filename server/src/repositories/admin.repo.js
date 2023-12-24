@@ -74,7 +74,7 @@ const createAdmin = async(payload) => {
 
 const changePassword = async({currentPassword, newPassword}, aid) => {
     let adminToUpdate = await getById(aid)
-    const match = await adminToUpdate.comparedPassword(currentPassword)
+    const match = await adminToUpdate.comparePassword(currentPassword)
     if(!match) throw new InvalidCredentialsError()
     adminToUpdate.password = newPassword
     await adminToUpdate.save()

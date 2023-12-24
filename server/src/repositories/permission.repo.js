@@ -116,18 +116,20 @@ const getPermissionsByAdminId = async (aid, {limit = 20, page = 1}) => {
     }
 }
 
-const getResourcePermission = async ({search = "", limit = 20, page = 1, actorTypeFilter = ""}) => {
+const getResourcePermission = async ({ search = "", limit = 20, page = 1, actorTypeFilter = "", resourceId = '' }) => {
     const skip = (page - 1) * limit
-    let query = {}
+    let query = {
+    }
     if (actorTypeFilter !== null && actorTypeFilter.trim() !== "") {
         query = {
-            actorType: {actorType: actorTypeFilter}
+            actorType: actorTypeFilter
         }
     }
+    query.resource = resourceId
     const resourcePermissions = await ResourcePermission.find(query)
         .populate([{
             path: "resource",
-            match: {resourceName: new RegExp(search, "i")},
+            match: { resourceName: new RegExp(search, "i") },
             select: "resourceName othersPermission"
         }, {
             path: "updatedBy",
@@ -154,10 +156,10 @@ const getResourcePermission = async ({search = "", limit = 20, page = 1, actorTy
 
     const [admins, adminGroups] = await Promise.all([
         Admin.find({
-            _id: {$in: adminIds}
+            _id: { $in: adminIds }
         }).select("username").lean(),
         AdminGroup.find({
-            _id: {$in: adminGroupIds}
+            _id: { $in: adminGroupIds }
         }).select("groupName").lean()
     ])
 
@@ -166,9 +168,9 @@ const getResourcePermission = async ({search = "", limit = 20, page = 1, actorTy
 
     const populatedResourcePermissions = resourcePermissions.map(permission => {
         if (permission.actorType === "Admin" && permission.actor) {
-            return {...permission, actor: adminMap.get(permission.actor.toString())}
+            return { ...permission, actor: adminMap.get(permission.actor.toString()) }
         } else if (permission.actorType === "AdminGroup" && permission.actor) {
-            return {...permission, actor: adminGroupMap.get(permission.actor.toString())}
+            return { ...permission, actor: adminGroupMap.get(permission.actor.toString()) }
         }
         return permission
     })

@@ -38,7 +38,8 @@ const getResourcePermissionSchema = Joi.object({
     limit: Joi.number().integer().min(1).optional(),
     search: Joi.string().optional().allow(''),
     actorTypeFilter: Joi.string().optional()
-        .valid("Admin", "AdminGroup")
+        .valid("Admin", "AdminGroup"),
+    resourceId: Joi.string().optional().allow("")
 })
 
 const createPermissionSchema = Joi.object({
