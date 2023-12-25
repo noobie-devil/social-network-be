@@ -215,17 +215,17 @@ const findByEmail = async(email) => {
             case 1:
                 user.details = await CollegeStudent.findById(user._id)
                     .populate(populatePaths)
-                    .select("_id")
+                    .select("-_id")
                 break
             case 2:
                 user.details = await Lecturer.findById(user._id)
                     .populate(populatePaths)
-                    .select("_id")
+                    .select("-_id")
                 break
             case 3:
                 user.details = await Candidate.findById(user._id)
                     .populate(populatePaths)
-                    .select("_id")
+                    .select("-_id")
                 break
         }
     }
