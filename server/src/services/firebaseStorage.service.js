@@ -66,9 +66,10 @@ const firebaseStorageDelete = async(deleteUrl) => {
 }
 
 const firebaseStorageUpload = async(fileToUpload) => {
-    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/jpeg'];
+    const allowedImageTypes = ['image/jpg', 'image/png', 'image/jpeg'];
     let storageRef = null
     let metadata = null
+    console.log(fileToUpload)
     if(allowedImageTypes.includes(fileToUpload.mimetype)) {
         storageRef = ref(storage, 'images/' + fileToUpload.filename)
         metadata = {
