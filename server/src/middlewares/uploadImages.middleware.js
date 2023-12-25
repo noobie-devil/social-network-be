@@ -21,7 +21,7 @@ const multerStorage = multer.diskStorage({
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         let extension = null
-        if(file.mime.startWith('image/')) {
+        if(file.mime.startsWith('image/')) {
             const s = file.mime.split('image/')
             extension = `.${s[1]}`
         } else if(file.originalname.match(/\.(mp4|avi|mkv)$/)) {
@@ -33,8 +33,7 @@ const multerStorage = multer.diskStorage({
 
 const multerFilter = (req, file, cb) => {
     console.log(file)
-    console.log(req)
-    if(allowedImageTypes.includes(file.mimetype) || file.originalname.match(/\.(mp4|avi|mkv)$/)) {
+    if(file.mimetype.startsWith('image/') || file.originalname.match(/\.(mp4|avi|mkv)$/)) {
         cb(null, true)
     } else {
         console.log('unsupported file')
