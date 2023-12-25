@@ -21,8 +21,8 @@ const multerStorage = multer.diskStorage({
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         let extension = null
-        if(file.mime.startsWith('image/')) {
-            const s = file.mime.split('image/')
+        if(file.mimetype.startsWith('image/')) {
+            const s = file.mimetype.split('image/')
             extension = `.${s[1]}`
         } else if(file.originalname.match(/\.(mp4|avi|mkv)$/)) {
             extension = ".mp4"
