@@ -55,6 +55,7 @@ const checkFileSize = async(filePath) => {
 
 export const imageResize = async(req, res, next) => {
     if(!req.files) return next();
+    console.log(req.files)
     if(req.files.images && req.files.images.length !== 0) {
         await Promise.all(
             req.files.images.map(async (file) => {
