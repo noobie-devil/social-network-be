@@ -55,17 +55,20 @@ const checkFileSize = async(filePath) => {
 
 export const imageResize = async(req, res, next) => {
     if(!req.files) return next();
-    await Promise.all(
-        req.files.images.map(async (file) => {
-            if(allowedImageTypes.includes(file.mimetype)) {
-                await checkFileSize(file.path)
-                await sharp(file.path).resize(500, 500)
-                    .toFile(path.join(__dirname, `../public/uploadedResources/images/${file.filename}`))
-                file.path = path.join(__dirname, `../public/uploadedResources/images/${file.filename}`)
-                fs.unlinkSync(path.join(__dirname, `../public/uploadedResources/${file.filename}`));
-            }
-        })
-    );
+    if(req.files.images && req.files.images.length !== 0) {
+        await Promise.all(
+            req.files.images.map(async (file) => {
+                if(allowedImageTypes.includes(file.mimetype)) {
+                    await checkFileSize(file.path)
+                    await sharp(file.path).resize(500, 500)
+                        .toFile(path.join(__dirname, `../public/uploadedResources/images/${file.filename}`))
+                    file.path = path.join(__dirname, `../public/uploadedResources/images/${file.filename}`)
+                    fs.unlinkSync(path.join(__dirname, `../public/uploadedResources/${file.filename}`));
+                }
+            })
+        );
+    }
+
     next();
 }
 
