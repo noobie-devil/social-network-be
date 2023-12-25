@@ -21,8 +21,9 @@ const multerStorage = multer.diskStorage({
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
         let extension = null
-        if(allowedImageTypes.includes(file.mimetype)) {
-            extension = ".jpeg"
+        if(file.mime.startWith('image/')) {
+            const s = file.mime.split('image/')
+            extension = `.${s[1]}`
         } else if(file.originalname.match(/\.(mp4|avi|mkv)$/)) {
             extension = ".mp4"
         }
@@ -59,9 +60,8 @@ export const imageResize = async(req, res, next) => {
         req.files.images.map(async (file) => {
             if(allowedImageTypes.includes(file.mimetype)) {
                 await checkFileSize(file.path)
-                await sharp(file.path).resize(500, 500).toFormat('jpeg').jpeg({
-                    quality: 90
-                }).toFile(path.join(__dirname, `../public/uploadedResources/images/${file.filename}`))
+                await sharp(file.path).resize(500, 500)
+                    .toFile(path.join(__dirname, `../public/uploadedResources/images/${file.filename}`))
                 file.path = path.join(__dirname, `../public/uploadedResources/images/${file.filename}`)
                 fs.unlinkSync(path.join(__dirname, `../public/uploadedResources/${file.filename}`));
             }

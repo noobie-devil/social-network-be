@@ -70,15 +70,16 @@ const firebaseStorageUpload = async(fileToUpload) => {
     let storageRef = null
     let metadata = null
     console.log(fileToUpload)
-    if(allowedImageTypes.includes(fileToUpload.mimetype)) {
+    if(fileToUpload.mimetype.startsWith('image/')) {
+    // if(allowedImageTypes.includes(fileToUpload.mimetype)) {
         storageRef = ref(storage, 'images/' + fileToUpload.filename)
         metadata = {
-            contentType: 'image/jpeg'
+            contentType: fileToUpload.mimetype
         }
     } else if(fileToUpload.originalname.match(/\.(mp4|avi|mkv)$/)) {
         storageRef = ref(storage, 'videos/' + fileToUpload.filename)
         metadata = {
-            contentType: 'video/mp4'
+            contentType: fileToUpload.mimetype
         }
     } else {
         throw new UnsupportedFileFormatError()
