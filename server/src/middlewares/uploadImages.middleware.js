@@ -31,6 +31,8 @@ const multerStorage = multer.diskStorage({
 })
 
 const multerFilter = (req, file, cb) => {
+    console.log(file)
+    console.log(req)
     if(allowedImageTypes.includes(file.mimetype) || file.originalname.match(/\.(mp4|avi|mkv)$/)) {
         cb(null, true)
     } else {
