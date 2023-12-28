@@ -756,6 +756,58 @@
  *          description: Internal error. Maybe unexpected error
  */
 
+/**
+ * @swagger
+ * /api/v1/update-info:
+ *  put:
+ *    summary: Update user info
+ *    tags: [Auth]
+ *    description: Endpoint for update user info
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      identityCode:
+ *                          type: string
+ *                          required: false
+ *                      homeTown:
+ *                          type: string
+ *                          required: false
+ *                      introduce:
+ *                          type: string
+ *                          required: false
+ *                      username:
+ *                          type: string
+ *                          required: false
+ *                      details:
+ *                          $ref: '#components/schemas/UserDetails'
+ *    responses:
+ *      200:
+ *         description: Successful operation
+ *         content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                              default: "Update success"
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      401:
+ *          description: Invalid token
+ *      403:
+ *          description: Forbidden Error
+ *      400:
+ *          description: Invalid input
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ */
 
 
 /**

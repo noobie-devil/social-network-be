@@ -40,15 +40,17 @@ const changePasswordUserSchema = Joi.object({
 
 const updateUserSchema = Joi.object({
     identityCode: Joi.string()
-        .required()
-        .not(null)
-        .not(""),
+        .optional()
+        .allow(null)
+        .allow(""),
     homeTown: Joi.string()
-        .required()
-        .not(null)
-        .not(""),
+        .optional()
+        .allow(null)
+        .allow(""),
     introduce: Joi.string()
         .optional()
+        .allow(null)
+        .allow("")
         .max(150),
     type: Joi.number()
         .required()
@@ -57,11 +59,17 @@ const updateUserSchema = Joi.object({
     username: Joi.string()
         .optional()
         .max(50)
-        .not(null),
-    details: Joi.when("type", {
+        .not("")
+        .allow(null),
+    details: Joi
+        .optional()
+        .allow(null)
+        .when("type", {
         is: 1,
         then: Joi.object({
-            graduated: Joi.boolean()
+            graduated: Joi
+                .boolean()
+                .optional()
                 .required(),
             classCode: Joi.string()
                 .allow("")
@@ -71,16 +79,18 @@ const updateUserSchema = Joi.object({
             is: 2,
             then: Joi.object({
                 faculty: Joi.string()
-                    .required()
+                    .optional()
+                    .allow(null)
                     .custom(isValidMongoId, "Invalid Id")
             }),
             otherwise: Joi.object({
                 registeredMajor: Joi.string()
-                    .required()
+                    .optional()
+                    .allow(null)
                     .custom(isValidMongoId, "Invalid Id"),
                 highSchool: Joi.string()
-                    .required()
-                    .not(null)
+                    .optional()
+                    .allow(null)
                     .not("")
             })
         })

@@ -11,7 +11,7 @@ import {
 } from "../schemaValidate/user.schema.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
-import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";
+import {cleanData, cleanNullAndEmptyData, parseNestedObj} from "../utils/lodash.utils.js";
 import {ValidationError} from "../core/errors/validation.error.js";
 import {baseQuerySchema} from "../schemaValidate/query.schema.js";
 import {updateSingleAssetResource, uploadAssetResource} from "./assetResource.service.js";
@@ -111,7 +111,7 @@ export const updateUserById = async(req) => {
     req.body['type'] = user.type
     await updateUserSchema.validateAsync(req.body)
     const username = req.body.username
-    if(!username && !username.trim().isEmpty()) {
+    if(username && !username.trim().isEmpty()) {
         const existUserName = User.findOne({
             _id: { $ne: id},
             username
@@ -220,7 +220,7 @@ class CollegeStudentDTO extends UserDTO {
     async update(id) {
         const session = await mongoose.startSession()
         session.startTransaction()
-        const update = cleanData(this)
+        const update = cleanNullAndEmptyData(this)
         try {
             if(update.details) {
                 await userRepository.updateUserById({
@@ -265,6 +265,31 @@ class LecturerDTO extends UserDTO {
             await session.endSession()
         }
     }
+    async update(id) {
+        const session = await mongoose.startSession()
+        session.startTransaction()
+        const update = cleanNullAndEmptyData(this)
+        try {
+            if(update.details) {
+                await userRepository.updateUserById({
+                    id: id,
+                    payload: parseNestedObj(update.details),
+                    model: Lecturer,
+                    session: session
+                })
+            }
+            const baseInfoUpdated = await super.update(id, parseNestedObj(update), session)
+            await session.commitTransaction()
+            return baseInfoUpdated
+        } catch (e) {
+            await session.abortTransaction()
+            throw e
+        } finally {
+            await session.endSession()
+        }
+
+    }
+
 }
 
 
@@ -289,6 +314,31 @@ class CandidateDTO extends UserDTO {
         } finally {
             await session.endSession()
         }
+    }
+
+    async update(id) {
+        const session = await mongoose.startSession()
+        session.startTransaction()
+        const update = cleanNullAndEmptyData(this)
+        try {
+            if(update.details) {
+                await userRepository.updateUserById({
+                    id: id,
+                    payload: parseNestedObj(update.details),
+                    model: Candidate,
+                    session: session
+                })
+            }
+            const baseInfoUpdated = await super.update(id, parseNestedObj(update), session)
+            await session.commitTransaction()
+            return baseInfoUpdated
+        } catch (e) {
+            await session.abortTransaction()
+            throw e
+        } finally {
+            await session.endSession()
+        }
+
     }
 }
 
