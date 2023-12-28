@@ -55,7 +55,7 @@ const UserPageSchema = new Schema({
     },
     avatar: {
         type: Schema.Types.ObjectId,
-        ref: "Image"
+        ref: "ResourceStorage"
     },
     likeCounts: {
         type: Number,

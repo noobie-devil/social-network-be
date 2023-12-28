@@ -3,7 +3,12 @@ import {validateMongodbId} from "../utils/global.utils.js";
 import {Candidate, CollegeStudent, Lecturer, User} from "../models/user.model.js"
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
-import {createUserSchema, respondFriendRequestSchema, updateUserSchema} from "../schemaValidate/user.schema.js";
+import {
+    changePasswordUserSchema,
+    createUserSchema,
+    respondFriendRequestSchema,
+    updateUserSchema
+} from "../schemaValidate/user.schema.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
 import {cleanData, parseNestedObj} from "../utils/lodash.utils.js";
@@ -54,10 +59,10 @@ export const sendFriendRequest = async (req) => {
 
 export const respondToFriendRequest = async (req) => {
     await respondFriendRequestSchema.validateAsync(req.body)
-    const {friendShipId, status} = req.body
+    const {friendshipId, status} = req.body
     if (!req.user) throw new InvalidCredentialsError()
     const receiverId = req.user._id;
-    return await userRepository.respondFriendRequest({friendShipId, receiverId, status})
+    return await userRepository.respondFriendRequest({friendshipId, receiverId, status})
 }
 
 export const getFriendsList = async (req) => {
@@ -69,9 +74,16 @@ export const getFriendsList = async (req) => {
 
 export const getFriendRequests = async (req) => {
     if (!req.user) throw new InvalidCredentialsError()
-    const {search, limit, page} = req.body
+    await baseQuerySchema.validateAsync(req.query)
     const userId = req.user._id
-    return await userRepository.getFriendRequests({userId, search, limit, page})
+    return await userRepository.getFriendRequests({...req.query, userId})
+}
+
+const findUsers = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    await baseQuerySchema.validateAsync(req.query)
+    const userId = req.user._id
+    return await userRepository.findUsers({...req.query, userId})
 }
 
 export const userUpdateProfile = async(req) => {
@@ -112,6 +124,12 @@ export const updateUserById = async(req) => {
     return new userClasses[user.type](req.body).update(req.params.id)
 }
 
+const changePassword = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    await changePasswordUserSchema.validateAsync(req.body)
+    const userId = req.user._id
+    return await userRepository.changePassword({...req.body, userId})
+}
 
 let userClasses = {
 }
@@ -280,5 +298,7 @@ userClasses[3] = CandidateDTO
 
 export {
     uploadAvatar,
-    removeAvatar
+    removeAvatar,
+    findUsers,
+    changePassword
 }

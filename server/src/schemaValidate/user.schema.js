@@ -6,7 +6,7 @@ const respondFriendRequestSchema = Joi.object({
     status: Joi.string()
         .valid("Rejected", "Accepted")
         .required(),
-    friendShipId: Joi.string()
+    friendshipId: Joi.string()
         .required()
         .custom(isValidMongoId, "Invalid Id")
 });
@@ -26,6 +26,17 @@ const isValidDateStringFormat = (value, helpers) => {
     }
     return helpers.error('any.invalid')
 }
+
+const changePasswordUserSchema = Joi.object({
+    currentPassword: Joi.string()
+        .required()
+        .min(8)
+        .max(256),
+    newPassword: Joi.string()
+        .required()
+        .min(8)
+        .max(256)
+})
 
 const updateUserSchema = Joi.object({
     identityCode: Joi.string()
@@ -153,5 +164,6 @@ const createUserSchema = Joi.object({
 export {
     respondFriendRequestSchema,
     createUserSchema,
-    updateUserSchema
+    updateUserSchema,
+    changePasswordUserSchema
 }

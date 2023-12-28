@@ -25,6 +25,12 @@ export const getFriendRequests = async(req, res, next) => {
     }).send(res)
 }
 
+export const findUsers = async(req, res, next) => {
+    new OkResponse({
+        data: await userService.findUsers(req)
+    }).send(res)
+}
+
 export const createUser = async(req, res, next) => {
     new CreatedResponse({
         data: await userService.createUser(req)
@@ -53,5 +59,11 @@ export const uploadAvatar = async(req, res, next) => {
 export const removeAvatar = async(req, res, next) => {
     new OkResponse({
         data: await userService.removeAvatar(req)
+    }).send(res)
+}
+
+export const changePassword = async(req, res, next) => {
+    new OkResponse({
+        message: await userService.changePassword(req)
     }).send(res)
 }

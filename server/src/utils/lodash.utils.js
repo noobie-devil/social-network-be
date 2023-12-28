@@ -24,6 +24,14 @@ export const getUnSelectObjFromSelectArr = (selectArr) => {
     return Object.fromEntries(selectArr.map(it => [it, 0]))
 }
 
+export const unSelectObjWithInput = (unSelectArr = [], input = {}) => {
+    const obj = input.toObject()
+    unSelectArr.forEach(field => {
+        delete obj[field]
+    })
+    return obj
+}
+
 export const parseNestedObj = (obj) => {
     const res = {}
     Object.entries(obj).forEach(([k, v]) => {

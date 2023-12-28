@@ -1,20 +1,24 @@
-import Friendship from "../models/friendship.model.js";
+import Friendship, {FriendState} from "../models/friendship.model.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
-import {cleanData, getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
+import {cleanData, getUnSelectObjFromSelectArr, unSelectObjWithInput} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
 import {User, CollegeStudent, Lecturer, Candidate} from "../models/user.model.js";
 import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
 import ResourceStorage from "../models/resourceStorage.model.js";
 import {deleteAssetResource, deleteAssetResourceWithRef} from "../services/assetResource.service.js";
 import {adminFieldPopulated} from "../models/admin.model.js";
+import Major from "../models/major.model.js";
+import Faculty from "../models/faculty.model.js";
+import EnrollmentYear from "../models/enrollmentYear.model.js";
+import {InvalidCredentialsError} from "../core/errors/invalidCredentials.error.js";
 
-const respondFriendRequest = async ({friendShipId, receiverId, status}) => {
+const respondFriendRequest = async ({friendshipId, receiverId, status}) => {
     const session = await mongoose.startSession()
     session.startTransaction()
     try {
         const existingFriendShip = await Friendship.findOne({
-            _id: new mongoose.Types.ObjectId(friendShipId),
+            _id: new mongoose.Types.ObjectId(friendshipId),
             receiver: new mongoose.Types.ObjectId(receiverId),
             status: "Pending"
         })
@@ -41,7 +45,7 @@ const respondFriendRequest = async ({friendShipId, receiverId, status}) => {
         }
 
         await session.commitTransaction()
-        return "Request success";
+        return "Response success";
     } catch(err) {
         await session.abortTransaction()
         throw err
@@ -95,36 +99,251 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
         },
         {
             $match: {
-                'friends.lastName': { $regex: search, $options: "i"},
-                'friends._id': {$ne: new mongoose.Types.ObjectId(userId)}
+                $and: [
+                    {
+                        $or: [
+                            { 'friends.username': new RegExp(search, 'i') },
+                            {
+                                $expr: {
+                                    $regexMatch: {
+                                        input: {
+                                            $concat: ["$firstName", " ", "$lastName"]
+                                        },
+                                        regex: new RegExp(search, 'i')
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                ]
             }
         },
         {
             $group: {
                 _id: '$_id',
-                friends: { $push: '$friends'}
+                friends: { $push: '$friends'},
+                totalCount: { $sum: 1}
             }
         },
         {
-            $skip: skip,
+            $skip: parseInt(skip, 10),
         },
         {
-            $limit: limit,
+            $limit: parseInt(limit, 10),
         },
         {
             $project: {
                 _id: 0,
-                friends: unSelectUserFieldToPublic({ extend })
+                friends: unSelectUserFieldToPublic({ extend }),
             }
         }
     ]);
 
-    return await query.exec()
+    const result = await query.exec()
+    console.log(result)
+    let formattedResult = {
+        friends: [],
+        totalCount: 0
+    }
+    if(result.length !== 0 && result[0]) {
+
+        let uniqueMajorIds = new Set()
+        let uniqueFacultyIds = new Set()
+        let uniqueEnrollmentYearIds = new Set()
+
+        result[0].friends.forEach(user => {
+            if(user.details.major) {
+                uniqueMajorIds.add(user.details.major)
+            }
+            if(user.details.faculty) {
+                uniqueFacultyIds.add(user.details.faculty)
+            }
+            if(user.details.enrollmentYear) {
+                uniqueEnrollmentYearIds.add(user.details.enrollmentYear)
+            }
+        })
+        uniqueMajorIds = Array.from(uniqueMajorIds)
+        uniqueFacultyIds = Array.from(uniqueFacultyIds)
+        uniqueEnrollmentYearIds = Array.from(uniqueEnrollmentYearIds)
+        let [majors, faculties, enrollmentYears] = await Promise.all([
+            Major.find({ _id: { $in: uniqueMajorIds }})
+                .select("code name")
+                .lean(),
+            Faculty.find({ _id: { $in: uniqueFacultyIds }})
+                .select("code name")
+                .lean(),
+            EnrollmentYear.find({ _id: { $in: uniqueEnrollmentYearIds }})
+                .select("name startYear")
+                .lean()
+        ])
+        majors = majors.reduce((acc, major) => {
+            acc[major._id.toString()] = major
+            return acc
+        }, {})
+        faculties = faculties.reduce((acc, faculty) => {
+            acc[faculty._id.toString()] = faculty
+            return acc
+        }, {})
+        enrollmentYears = enrollmentYears.reduce((acc, enrollmentYear) => {
+            acc[enrollmentYear._id.toString()] = enrollmentYear
+            return acc
+        }, {})
+        result[0].friends = result[0].friends.map(user => {
+            if(user.details.major) {
+                const majorId = user.details.major.toString()
+                if(majors[majorId]) {
+                    user.details.major = majors[majorId]
+                }
+            }
+            if(user.details.faculty) {
+                const facultyId = user.details.faculty.toString()
+                if(faculties[facultyId]) {
+                    user.details.faculty = faculties[facultyId]
+                }
+            }
+            if(user.details.enrollmentYear) {
+                const enrollmentYearId = user.details.enrollmentYear.toString()
+                if(enrollmentYears[enrollmentYearId]) {
+                    user.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+                }
+            }
+            return user
+        })
+
+        formattedResult.friends = result[0].friends
+        formattedResult.totalCount = result[0].totalCount
+    }
+    return formattedResult
+}
+
+const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] }) => {
+    const skip = (page - 1) * limit
+    const filter = {
+        $and: [
+            {
+                $or: [
+                    {
+                        username: new RegExp(search, 'i')
+                    },
+                    {
+                        $expr: {
+                            $regexMatch: {
+                                input: {
+                                    $concat: ["$firstName", " ", "$lastName"]
+                                },
+                                regex: new RegExp(search, 'i')
+                            }
+                        }
+                    }
+                ]
+            },
+            {
+                _id: { $ne: new mongoose.Types.ObjectId(userId)}
+            }
+        ]
+    }
+    let users = await User.find(filter)
+        .select("-password -updatedAt -createdAt -birthdate -status -friends -email")
+        .limit(limit)
+        .skip(skip)
+        .lean()
+    const userIds = users.map(user => user._id.toString())
+    const friendshipUserStates = await Friendship.find({
+        $or: [
+            { sender: userId, status: { $in: [FriendState.PENDING, FriendState.ACCEPTED]}, receiver: { $in: userIds } },
+            { receiver: userId, status: { $in: [FriendState.PENDING, FriendState.ACCEPTED]}, sender: { $in: userIds } }
+        ]
+    })
+    const friendshipMap = {}
+    for(const friendshipState of friendshipUserStates) {
+        let friendId
+        if(friendshipState.sender.toString() !== userId) {
+            friendId = friendshipState.sender.toString()
+        } else if(friendshipState.receiver.toString() !== userId) {
+            friendId = friendshipState.receiver.toString()
+        }
+        if(friendId) {
+            friendshipMap[friendId] = friendshipState.status
+        }
+    }
+    let uniqueMajorIds = new Set()
+    let uniqueFacultyIds = new Set()
+    let uniqueEnrollmentYearIds = new Set()
+
+    users.forEach(user => {
+        if(user.details.major) {
+            uniqueMajorIds.add(user.details.major)
+        }
+        if(user.details.faculty) {
+            uniqueFacultyIds.add(user.details.faculty)
+        }
+        if(user.details.enrollmentYear) {
+            uniqueEnrollmentYearIds.add(user.details.enrollmentYear)
+        }
+    })
+    uniqueMajorIds = Array.from(uniqueMajorIds)
+    uniqueFacultyIds = Array.from(uniqueFacultyIds)
+    uniqueEnrollmentYearIds = Array.from(uniqueEnrollmentYearIds)
+    let [majors, faculties, enrollmentYears] = await Promise.all([
+        Major.find({ _id: { $in: uniqueMajorIds }})
+            .select("code name")
+            .lean(),
+        Faculty.find({ _id: { $in: uniqueFacultyIds }})
+            .select("code name")
+            .lean(),
+        EnrollmentYear.find({ _id: { $in: uniqueEnrollmentYearIds }})
+            .select("name startYear")
+            .lean()
+    ])
+    majors = majors.reduce((acc, major) => {
+        acc[major._id.toString()] = major
+        return acc
+    }, {})
+    faculties = faculties.reduce((acc, faculty) => {
+        acc[faculty._id.toString()] = faculty
+        return acc
+    }, {})
+    enrollmentYears = enrollmentYears.reduce((acc, enrollmentYear) => {
+        acc[enrollmentYear._id.toString()] = enrollmentYear
+        return acc
+    }, {})
+    users = users.map(user => {
+        let friendState = ""
+        if(friendshipMap.hasOwnProperty(user._id)) {
+            friendState = friendshipMap[user._id]
+        }
+        if(user.details.major) {
+            const majorId = user.details.major.toString()
+            if(majors[majorId]) {
+                user.details.major = majors[majorId]
+            }
+        }
+        if(user.details.faculty) {
+            const facultyId = user.details.faculty.toString()
+            if(faculties[facultyId]) {
+                user.details.faculty = faculties[facultyId]
+            }
+        }
+        if(user.details.enrollmentYear) {
+            const enrollmentYearId = user.details.enrollmentYear.toString()
+            if(enrollmentYears[enrollmentYearId]) {
+                user.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+            }
+        }
+        return {user, friendState}
+    })
+    const count = await User.countDocuments(filter)
+    return {
+        users,
+        totalCount: count
+    }
+
 }
 
 const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, select = []}) => {
     const skip = (page - 1) * limit
-    const extend = ["__v"]
+    const extend = ["__v", "birthdate", "status", "friends", "email"]
+    console.log(search)
     const query = Friendship
         .aggregate([
             {
@@ -139,37 +358,138 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                     localField: "sender",
                     foreignField: "_id",
                     as: "senderInfo",
+                    let: { i: "$senderInfo"},
+                    pipeline: [
+                        {
+                            $match: {
+                                $or: [
+                                    { "username": new RegExp(search, 'i') },
+                                    {
+                                        $expr: {
+                                            $regexMatch: {
+                                                input: {
+                                                    $concat: ["$firstName", " ", "$lastName"]
+                                                },
+                                                regex: new RegExp(search, 'i')
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            $project: unSelectUserFieldToPublic({extend})
+                        }
+                    ]
                 },
             },
             {
                 $unwind: "$senderInfo",
             },
             {
-                $match: {
-                    $or: [
-                        { "senderInfo.lastName": { $regex: search, $options: "i" } },
-                        { "senderInfo.lastName": { $exists: false } },
-                    ],
-                },
-            },
-            {
                 $sort: { updatedAt: -1 },
             },
             {
-                $skip: skip,
+                $group: {
+                    _id: null,
+                    requests: {
+                        $push: {
+                            _id: "$_id",
+                            sender: "$senderInfo",
+                            status: "$status"
+                        }
+                    },
+                    totalCount: { $sum: 1}
+                }
             },
             {
-                $limit: limit,
+                $skip: parseInt(skip, 10),
+            },
+            {
+                $limit: parseInt(limit, 10),
             },
             {
                 $project: {
-                    ...getUnSelectObjFromSelectArr(extend),
-                    senderInfo: unSelectUserFieldToPublic({ extend })
+                    _id: 0,
+                    requests: "$requests",
+                    totalCount: "$totalCount"
                 },
             },
         ]);
+    const result = await query.exec()
+    if(result.length !== 0 && result[0]) {
+        let uniqueMajorIds = new Set()
+        let uniqueFacultyIds = new Set()
+        let uniqueEnrollmentYearIds = new Set()
+        result[0].requests.forEach((request) => {
+            if(request.sender.details.major) {
+                uniqueMajorIds.add(request.sender.details.major)
+            }
+            if(request.sender.details.faculty) {
+                uniqueFacultyIds.add(request.sender.details.faculty)
+            }
+            if(request.sender.details.enrollmentYear) {
+                uniqueEnrollmentYearIds.add(request.sender.details.enrollmentYear)
+            }
+        })
+        uniqueMajorIds = Array.from(uniqueMajorIds)
+        uniqueFacultyIds = Array.from(uniqueFacultyIds)
+        uniqueEnrollmentYearIds = Array.from(uniqueEnrollmentYearIds)
+        let [majors, faculties, enrollmentYears] = await Promise.all([
+            Major.find({ _id: { $in: uniqueMajorIds }})
+                .select("code name")
+                .lean(),
+            Faculty.find({ _id: { $in: uniqueFacultyIds }})
+                .select("code name")
+                .lean(),
+            EnrollmentYear.find({ _id: { $in: uniqueEnrollmentYearIds }})
+                .select("name startYear")
+                .lean()
+        ])
+        majors = majors.reduce((acc, major) => {
+            acc[major._id.toString()] = major
+            return acc
+        }, {})
+        faculties = faculties.reduce((acc, faculty) => {
+            acc[faculty._id.toString()] = faculty
+            return acc
+        }, {})
+        enrollmentYears = enrollmentYears.reduce((acc, enrollmentYear) => {
+            acc[enrollmentYear._id.toString()] = enrollmentYear
+            return acc
+        }, {})
+        result[0].requests = result[0].requests.map((request) => {
+            if(request.sender.details.major) {
+                const majorId = request.sender.details.major.toString()
+                if(majors[majorId]) {
+                    request.sender.details.major = majors[majorId]
+                }
+            }
+            if(request.sender.details.faculty) {
+                const facultyId = request.sender.details.faculty.toString()
+                if(faculties[facultyId]) {
+                    request.sender.details.faculty = faculties[facultyId]
+                }
+            }
+            if(request.sender.details.enrollmentYear) {
+                const enrollmentYearId = request.sender.details.enrollmentYear.toString()
+                if(enrollmentYears[enrollmentYearId]) {
+                    request.sender.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+                }
+            }
+            return request
+        })
+    }
 
-    return await query.exec();
+    let formattedResult = {
+        requests: [],
+        totalCount: 0
+    }
+    if(result.length !== 0 && result[0]) {
+        formattedResult.requests = result[0].requests
+        formattedResult.totalCount = result[0].totalCount
+    }
+    return formattedResult
 }
 
 const findUserByEmail = async ({email, select = {
@@ -297,9 +617,19 @@ const updateUserById = async({
     return update
 }
 
+const changePassword = async({userId, currentPassword, newPassword}) => {
+    const user = await User.findById(userId)
+    const match = await user.comparePassword(currentPassword)
+    if(!match) throw new InvalidCredentialsError()
+    user.password = newPassword
+    await user.save()
+    return "Change password success"
+}
+
 export {
     sendFriendRequest, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
-    findById, updateUserById, create, findByEmail, uploadAvatar, removeAvatar
+    findById, updateUserById, create, findByEmail, uploadAvatar, removeAvatar,
+    findUsers, changePassword
 }
 
 

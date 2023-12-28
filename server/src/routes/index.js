@@ -15,6 +15,7 @@ import {userLogin, userRefreshToken, userRegister} from "../controllers/access.c
 import {authentication} from "../middlewares/auth.middleware.js";
 import {imageResize, uploadAttachments} from "../middlewares/uploadImages.middleware.js";
 import {uploadAvatar} from "../controllers/user.controller.js";
+import clientSearchingRouter from "./clientSearching.routes.js";
 
 const router = express.Router()
 // router.use('/login', asyncHandler(userLogin))
@@ -33,4 +34,5 @@ router.use('/major', majorRouter)
 router.use('/enrollment-year', enrollmentYearRouter)
 router.use('/asset-resources', assetResourceRouter)
 router.use('/posts', postRouter)
+router.use('/search', clientSearchingRouter)
 export default router;

@@ -3,6 +3,7 @@ import moment from 'moment';
 import bcrypt from "bcrypt";
 import config from "../utils/global.config.js";
 import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
+import removeAccents from 'remove-accents'
 import {getUnSelectObjFromSelectArr} from "../utils/lodash.utils.js";
 
 
@@ -144,6 +145,13 @@ UserSchema.methods.toPublicData = function(timestamps = false) {
 }
 
 UserSchema.pre("save", async function(next) {
+    if(this.isNew && !this.username || this.username === "") {
+        const formattedFirstName = removeAccents(this.firstName).toLocaleLowerCase()
+        const formattedLastName = removeAccents(this.lastName).toLocaleLowerCase()
+        let concatenatedName = `${formattedFirstName}.${formattedLastName}`
+        concatenatedName = concatenatedName.replace(/\s+/g, '')
+        this.username = `${concatenatedName}@${this.identityCode}`
+    }
     if(!this.isNew && !this.isModified('password')) return next()
     const salt = await bcrypt.genSalt(config.BCRYPT.SALT)
     this.password = await bcrypt.hashSync(this.password, salt)

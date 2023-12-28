@@ -713,6 +713,49 @@
  *          description: Internal error. Maybe unexpected error
  */
 
+/**
+ * @swagger
+ * /api/v1/change-password:
+ *  put:
+ *    summary: Change user password
+ *    tags: [Auth]
+ *    description: Endpoint for change user password
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      currentPassword:
+ *                          type: string
+ *                      newPassword:
+ *                          type: string
+ *    responses:
+ *      200:
+ *         description: Successful operation
+ *         content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                              default: "Change password success"
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      401:
+ *          description: Invalid token
+ *      403:
+ *          description: Forbidden Error
+ *      400:
+ *          description: Invalid input
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ */
+
 
 
 /**
@@ -790,6 +833,12 @@
  *    tags: [Post]
  *    description: ''
  *    parameters:
+ *      - name: userId
+ *        in: path
+ *        description: user id
+ *        required: true
+ *        schema:
+ *          type: string
  *      - name: page
  *        in: query
  *        description: The number of items to skip before starting to collect the result set
@@ -842,6 +891,13 @@
  *    summary: Get posts by id
  *    tags: [Post]
  *    description: ''
+ *    parameters:
+ *      - name: postId
+ *        in: path
+ *        description: ID of post
+ *        required: true
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *          description: Successful operation
@@ -918,9 +974,9 @@
  *    tags: [Post]
  *    description: ''
  *    parameters:
- *      - name: adminId
+ *      - name: postId
  *        in: path
- *        description: ID of admin to update
+ *        description: ID of post to update
  *        required: true
  *        schema:
  *          type: string
@@ -964,9 +1020,9 @@
  *    tags: [Post]
  *    description: ''
  *    parameters:
- *      - name: adminId
+ *      - name: postId
  *        in: path
- *        description: ID of admin to update
+ *        description: id of post to delete
  *        required: true
  *        schema:
  *          type: string
@@ -1058,6 +1114,12 @@
  *    tags: [Like]
  *    description: ''
  *    parameters:
+ *      - name: postId
+ *        in: path
+ *        description: post id
+ *        required: true
+ *        schema:
+ *          type: string
  *      - name: search
  *        in: query
  *        description: Search by username or pageName
@@ -1119,6 +1181,13 @@
  *    summary: Like the post
  *    tags: [Like]
  *    description: Like the post
+ *    parameters:
+ *     - name: postId
+ *       in: path
+ *       description: post id
+ *       required: true
+ *       schema:
+ *          type: string
  *    responses:
  *      200:
  *          description: Created successfully
@@ -1163,6 +1232,13 @@
  *    summary: Unlike post
  *    tags: [Like]
  *    description: ''
+ *    parameters:
+ *     - name: postId
+ *       in: path
+ *       description: post id
+ *       required: true
+ *       schema:
+ *          type: string
  *    responses:
  *      200:
  *          description: Unlike post success
@@ -1199,6 +1275,273 @@
  *    security:
  *      - bearerAuth: []
  */
+
+/**
+ *  @swagger
+ *  tags:
+ *      name: Client Search
+ *      description: The Search API For Users At Client
+ */
+
+/**
+ * @swagger
+ * /api/v1/search/users:
+ *  get:
+ *    summary: Find Users
+ *    tags: [Client Search]
+ *    description: ''
+ *    parameters:
+ *     - name: page
+ *       in: query
+ *       description: The number of items to skip before starting to collect the result set
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: limit
+ *       in: query
+ *       description: The number of items to return.
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: search
+ *       in: query
+ *       description: The keyword used to search
+ *       required: false
+ *       schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+
+/**
+ *  @swagger
+ *  tags:
+ *      name: Friends
+ *      description: The Friends API
+ */
+
+/**
+ * @swagger
+ * /api/v1/friends:
+ *  get:
+ *    summary: Get Friends List
+ *    tags: [Friends]
+ *    description: ''
+ *    parameters:
+ *     - name: page
+ *       in: query
+ *       description: The number of items to skip before starting to collect the result set
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: limit
+ *       in: query
+ *       description: The number of items to return.
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: search
+ *       in: query
+ *       description: The keyword used to search
+ *       required: false
+ *       schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/friends/requests:
+ *  get:
+ *    summary: Get Friends Requests
+ *    tags: [Friends]
+ *    description: ''
+ *    parameters:
+ *     - name: page
+ *       in: query
+ *       description: The number of items to skip before starting to collect the result set
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: limit
+ *       in: query
+ *       description: The number of items to return.
+ *       required: false
+ *       schema:
+ *          type: integer
+ *          minimum: 1
+ *     - name: search
+ *       in: query
+ *       description: The keyword used to search
+ *       required: false
+ *       schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/friends:
+ *  put:
+ *    summary: Respond to friend request
+ *    tags: [Friends]
+ *    description: ''
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      status:
+ *                          type: string
+ *                          enums: ["Rejected", "Accepted"]
+ *                      friendshipId:
+ *                          type: string
+ *    responses:
+ *      200:
+ *          description: Update post success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+
+/**
+ * @swagger
+ * /api/v1/friends/{receiverId}:
+ *  post:
+ *    summary: Send friend request
+ *    tags: [Friends]
+ *    description: Send friend request to another user
+ *    parameters:
+ *      - name: receiverId
+ *        in: path
+ *        required: true
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Send request success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
 
 /**
  *  @swagger

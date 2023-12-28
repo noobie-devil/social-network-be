@@ -1,6 +1,12 @@
 import mongoose, { Schema } from "mongoose";
 import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugins.js";
 
+export const FriendState = {
+    PENDING: "Pending",
+    ACCEPTED: "Accepted",
+    REJECTED: "Rejected"
+}
+
 const FriendshipSchema = new Schema(
     {
         sender: {
@@ -15,7 +21,7 @@ const FriendshipSchema = new Schema(
         },
         status: {
             type: String,
-            enum: ['Pending', "Accepted", "Rejected"],
+            enum: Object.values(FriendState),
             required: true
         }
     },

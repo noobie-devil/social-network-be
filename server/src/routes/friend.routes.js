@@ -13,6 +13,7 @@ const friendRouter = express.Router()
 friendRouter.use(authentication)
 friendRouter.get("/", asyncHandler(getFriendsList))
 friendRouter.get("/requests", asyncHandler(getFriendRequests))
-friendRouter.put("/", asyncHandler(respondToFriendRequest))
 friendRouter.post("/:receiverId", asyncHandler(sendFriendRequest))
+friendRouter.put("/", asyncHandler(respondToFriendRequest))
+
 export default friendRouter
