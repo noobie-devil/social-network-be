@@ -24,20 +24,20 @@ const respondFriendRequest = async ({friendshipId, receiverId, status}) => {
         })
             .populate("sender receiver");
         if (!existingFriendShip) throw new BadRequestError("Invalid request");
-        if(!existingFriendShip.sender || !existingFriendShip.receiver) {
+        if (!existingFriendShip.sender || !existingFriendShip.receiver) {
             throw NotFoundError("An error occurred, the user does not exist")
         }
         existingFriendShip.status = status;
         await existingFriendShip.save({session});
-        if(status === 'Accepted') {
+        if (status === 'Accepted') {
             const sender = existingFriendShip.sender
             const receiver = existingFriendShip.receiver
-            if(receiver.friends.findIndex(f => f.equals(sender._id)) === -1) {
+            if (receiver.friends.findIndex(f => f.equals(sender._id)) === -1) {
                 receiver.friends.push(sender._id)
                 receiver.friendCount++
                 await receiver.save({session})
             }
-            if(sender.friends.findIndex(f => f.equals(receiver._id)) === -1) {
+            if (sender.friends.findIndex(f => f.equals(receiver._id)) === -1) {
                 sender.friends.push(receiver._id)
                 sender.friendCount++
                 await sender.save({session})
@@ -46,7 +46,7 @@ const respondFriendRequest = async ({friendshipId, receiverId, status}) => {
 
         await session.commitTransaction()
         return "Response success";
-    } catch(err) {
+    } catch (err) {
         await session.abortTransaction()
         throw err
     } finally {
@@ -92,73 +92,99 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
                 localField: "friends",
                 foreignField: "_id",
                 as: "friends",
+                let: {i: "$friends"},
+                pipeline: [
+                    {
+                        $match: {
+                            $or: [
+                                {'username': new RegExp(search, 'i')},
+                                {
+                                    $expr: {
+                                        $regexMatch: {
+                                            input: {
+                                                $concat: ['$firstName', " ", "$lastName"]
+                                            },
+                                            regex: new RegExp(search, 'i')
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $project: unSelectUserFieldToPublic({extend})
+                    }
+                ]
             }
         },
         {
             $unwind: "$friends",
         },
         {
-            $match: {
-                $and: [
+            $facet: {
+                friendResults: [
                     {
-                        $or: [
-                            { 'friends.username': new RegExp(search, 'i') },
-                            {
-                                $expr: {
-                                    $regexMatch: {
-                                        input: {
-                                            $concat: ["$firstName", " ", "$lastName"]
-                                        },
-                                        regex: new RegExp(search, 'i')
-                                    }
-                                }
+                        $group: {
+                            _id: '$_id',
+                            friends: {$push: '$friends'},
+                        }
+                    },
+                    {
+                        $skip: parseInt(skip, 10),
+                    },
+                    {
+                        $limit: parseInt(limit, 10),
+                    },
+                    {
+                        $project: {
+                            _id: 0
+                        }
+                    }
+                ],
+                totalCount: [
+                    {
+                        $group: {
+                            _id: null,
+                            count: {
+                                $sum: 1
                             }
-                        ]
+                        }
                     }
                 ]
             }
         },
         {
-            $group: {
-                _id: '$_id',
-                friends: { $push: '$friends'},
-                totalCount: { $sum: 1}
-            }
-        },
-        {
-            $skip: parseInt(skip, 10),
-        },
-        {
-            $limit: parseInt(limit, 10),
-        },
-        {
-            $project: {
-                _id: 0,
-                friends: unSelectUserFieldToPublic({ extend }),
+            $replaceWith: {
+
+                friends: {
+                    $ifNull: [{$first: "$friendResults.friends"}, []],
+                },
+                totalCount: {
+                    $ifNull: [{$first: "$totalCount.count"}, 0]
+                }
             }
         }
     ]);
 
     const result = await query.exec()
-    console.log(result)
     let formattedResult = {
         friends: [],
         totalCount: 0
     }
-    if(result.length !== 0 && result[0]) {
+    if (result.length !== 0 && result[0]) {
 
         let uniqueMajorIds = new Set()
         let uniqueFacultyIds = new Set()
         let uniqueEnrollmentYearIds = new Set()
 
         result[0].friends.forEach(user => {
-            if(user.details.major) {
+            if (user.details.major) {
                 uniqueMajorIds.add(user.details.major)
             }
-            if(user.details.faculty) {
+            if (user.details.faculty) {
                 uniqueFacultyIds.add(user.details.faculty)
             }
-            if(user.details.enrollmentYear) {
+            if (user.details.enrollmentYear) {
                 uniqueEnrollmentYearIds.add(user.details.enrollmentYear)
             }
         })
@@ -166,13 +192,13 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
         uniqueFacultyIds = Array.from(uniqueFacultyIds)
         uniqueEnrollmentYearIds = Array.from(uniqueEnrollmentYearIds)
         let [majors, faculties, enrollmentYears] = await Promise.all([
-            Major.find({ _id: { $in: uniqueMajorIds }})
+            Major.find({_id: {$in: uniqueMajorIds}})
                 .select("code name")
                 .lean(),
-            Faculty.find({ _id: { $in: uniqueFacultyIds }})
+            Faculty.find({_id: {$in: uniqueFacultyIds}})
                 .select("code name")
                 .lean(),
-            EnrollmentYear.find({ _id: { $in: uniqueEnrollmentYearIds }})
+            EnrollmentYear.find({_id: {$in: uniqueEnrollmentYearIds}})
                 .select("name startYear")
                 .lean()
         ])
@@ -189,22 +215,28 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
             return acc
         }, {})
         result[0].friends = result[0].friends.map(user => {
-            if(user.details.major) {
+            if (user.details.major) {
                 const majorId = user.details.major.toString()
-                if(majors[majorId]) {
+                if (majors[majorId]) {
                     user.details.major = majors[majorId]
+                } else {
+                    user.details.major = {}
                 }
             }
-            if(user.details.faculty) {
+            if (user.details.faculty) {
                 const facultyId = user.details.faculty.toString()
-                if(faculties[facultyId]) {
+                if (faculties[facultyId]) {
                     user.details.faculty = faculties[facultyId]
+                } else {
+                    user.details.faculty = {}
                 }
             }
-            if(user.details.enrollmentYear) {
+            if (user.details.enrollmentYear) {
                 const enrollmentYearId = user.details.enrollmentYear.toString()
-                if(enrollmentYears[enrollmentYearId]) {
+                if (enrollmentYears[enrollmentYearId]) {
                     user.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+                } else {
+                    user.details.enrollmentYear = {}
                 }
             }
             return user
@@ -216,7 +248,7 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
     return formattedResult
 }
 
-const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] }) => {
+const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []}) => {
     const skip = (page - 1) * limit
     const filter = {
         $and: [
@@ -238,7 +270,7 @@ const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] 
                 ]
             },
             {
-                _id: { $ne: new mongoose.Types.ObjectId(userId)}
+                _id: {$ne: new mongoose.Types.ObjectId(userId)}
             }
         ]
     }
@@ -250,19 +282,19 @@ const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] 
     const userIds = users.map(user => user._id.toString())
     const friendshipUserStates = await Friendship.find({
         $or: [
-            { sender: userId, status: { $in: [FriendState.PENDING, FriendState.ACCEPTED]}, receiver: { $in: userIds } },
-            { receiver: userId, status: { $in: [FriendState.PENDING, FriendState.ACCEPTED]}, sender: { $in: userIds } }
+            {sender: userId, status: {$in: [FriendState.PENDING, FriendState.ACCEPTED]}, receiver: {$in: userIds}},
+            {receiver: userId, status: {$in: [FriendState.PENDING, FriendState.ACCEPTED]}, sender: {$in: userIds}}
         ]
     })
     const friendshipMap = {}
-    for(const friendshipState of friendshipUserStates) {
+    for (const friendshipState of friendshipUserStates) {
         let friendId
-        if(friendshipState.sender.toString() !== userId) {
+        if (friendshipState.sender.toString() !== userId) {
             friendId = friendshipState.sender.toString()
-        } else if(friendshipState.receiver.toString() !== userId) {
+        } else if (friendshipState.receiver.toString() !== userId) {
             friendId = friendshipState.receiver.toString()
         }
-        if(friendId) {
+        if (friendId) {
             friendshipMap[friendId] = friendshipState.status
         }
     }
@@ -271,13 +303,13 @@ const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] 
     let uniqueEnrollmentYearIds = new Set()
 
     users.forEach(user => {
-        if(user.details.major) {
+        if (user.details.major) {
             uniqueMajorIds.add(user.details.major)
         }
-        if(user.details.faculty) {
+        if (user.details.faculty) {
             uniqueFacultyIds.add(user.details.faculty)
         }
-        if(user.details.enrollmentYear) {
+        if (user.details.enrollmentYear) {
             uniqueEnrollmentYearIds.add(user.details.enrollmentYear)
         }
     })
@@ -285,13 +317,13 @@ const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] 
     uniqueFacultyIds = Array.from(uniqueFacultyIds)
     uniqueEnrollmentYearIds = Array.from(uniqueEnrollmentYearIds)
     let [majors, faculties, enrollmentYears] = await Promise.all([
-        Major.find({ _id: { $in: uniqueMajorIds }})
+        Major.find({_id: {$in: uniqueMajorIds}})
             .select("code name")
             .lean(),
-        Faculty.find({ _id: { $in: uniqueFacultyIds }})
+        Faculty.find({_id: {$in: uniqueFacultyIds}})
             .select("code name")
             .lean(),
-        EnrollmentYear.find({ _id: { $in: uniqueEnrollmentYearIds }})
+        EnrollmentYear.find({_id: {$in: uniqueEnrollmentYearIds}})
             .select("name startYear")
             .lean()
     ])
@@ -309,25 +341,31 @@ const findUsers = async({userId, search = "", limit = 20, page = 1, select = [] 
     }, {})
     users = users.map(user => {
         let friendState = ""
-        if(friendshipMap.hasOwnProperty(user._id)) {
+        if (friendshipMap.hasOwnProperty(user._id)) {
             friendState = friendshipMap[user._id]
         }
-        if(user.details.major) {
+        if (user.details.major) {
             const majorId = user.details.major.toString()
-            if(majors[majorId]) {
+            if (majors[majorId]) {
                 user.details.major = majors[majorId]
+            } else {
+                user.details.major = {}
             }
         }
-        if(user.details.faculty) {
+        if (user.details.faculty) {
             const facultyId = user.details.faculty.toString()
-            if(faculties[facultyId]) {
+            if (faculties[facultyId]) {
                 user.details.faculty = faculties[facultyId]
+            } else {
+                user.details.faculty = {}
             }
         }
-        if(user.details.enrollmentYear) {
+        if (user.details.enrollmentYear) {
             const enrollmentYearId = user.details.enrollmentYear.toString()
-            if(enrollmentYears[enrollmentYearId]) {
+            if (enrollmentYears[enrollmentYearId]) {
                 user.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+            } else {
+                user.details.enrollmentYear = {}
             }
         }
         return {user, friendState}
@@ -358,12 +396,12 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                     localField: "sender",
                     foreignField: "_id",
                     as: "senderInfo",
-                    let: { i: "$senderInfo"},
+                    let: {i: "$senderInfo"},
                     pipeline: [
                         {
                             $match: {
                                 $or: [
-                                    { "username": new RegExp(search, 'i') },
+                                    {"username": new RegExp(search, 'i')},
                                     {
                                         $expr: {
                                             $regexMatch: {
@@ -378,7 +416,7 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                             }
                         },
                         {
-                            $project: unSelectUserFieldToPublic({extend})
+                            $project: unSelectUserFieldToPublic({ extend})
                         }
                     ]
                 },
@@ -387,48 +425,69 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                 $unwind: "$senderInfo",
             },
             {
-                $sort: { updatedAt: -1 },
-            },
-            {
-                $group: {
-                    _id: null,
-                    requests: {
-                        $push: {
-                            _id: "$_id",
-                            sender: "$senderInfo",
-                            status: "$status"
+                $facet: {
+                    requests: [
+                        {
+                            $group: {
+                                _id: "$_id",
+                                sender: {
+                                    "$first": "$senderInfo"
+                                },
+                                status: {
+                                    "$first": "$status"
+                                },
+                                createdAt: {
+                                    "$first": "$createdAt"
+                                },
+                                updatedAt: {
+                                    "$first": "$updatedAt"
+                                },
+
+                            }
+                        },
+                        {
+                            $sort: {createdAt: -1}
+                        },
+                        {
+                            $skip: parseInt(skip, 10),
+                        },
+                        {
+                            $limit: parseInt(limit, 10),
+                        },
+                    ],
+                    count: [
+                        {
+                            $group: {
+                                _id: null,
+                                count: {
+                                    $sum: 1
+                                }
+                            }
                         }
-                    },
-                    totalCount: { $sum: 1}
+                    ]
                 }
             },
             {
-                $skip: parseInt(skip, 10),
-            },
-            {
-                $limit: parseInt(limit, 10),
-            },
-            {
-                $project: {
-                    _id: 0,
+                $replaceWith: {
                     requests: "$requests",
-                    totalCount: "$totalCount"
-                },
+                    totalCount: {$first: "$count.count"},
+                }
             },
-        ]);
+        ])
     const result = await query.exec()
-    if(result.length !== 0 && result[0]) {
+    // return result
+    if (result.length !== 0 && result[0]) {
         let uniqueMajorIds = new Set()
         let uniqueFacultyIds = new Set()
         let uniqueEnrollmentYearIds = new Set()
         result[0].requests.forEach((request) => {
-            if(request.sender.details.major) {
+            if (request.sender.details.major) {
                 uniqueMajorIds.add(request.sender.details.major)
             }
-            if(request.sender.details.faculty) {
+            if (request.sender.details.faculty) {
                 uniqueFacultyIds.add(request.sender.details.faculty)
             }
-            if(request.sender.details.enrollmentYear) {
+            if (request.sender.details.enrollmentYear) {
                 uniqueEnrollmentYearIds.add(request.sender.details.enrollmentYear)
             }
         })
@@ -436,13 +495,13 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
         uniqueFacultyIds = Array.from(uniqueFacultyIds)
         uniqueEnrollmentYearIds = Array.from(uniqueEnrollmentYearIds)
         let [majors, faculties, enrollmentYears] = await Promise.all([
-            Major.find({ _id: { $in: uniqueMajorIds }})
+            Major.find({_id: {$in: uniqueMajorIds}})
                 .select("code name")
                 .lean(),
-            Faculty.find({ _id: { $in: uniqueFacultyIds }})
+            Faculty.find({_id: {$in: uniqueFacultyIds}})
                 .select("code name")
                 .lean(),
-            EnrollmentYear.find({ _id: { $in: uniqueEnrollmentYearIds }})
+            EnrollmentYear.find({_id: {$in: uniqueEnrollmentYearIds}})
                 .select("name startYear")
                 .lean()
         ])
@@ -459,22 +518,28 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
             return acc
         }, {})
         result[0].requests = result[0].requests.map((request) => {
-            if(request.sender.details.major) {
+            if (request.sender.details.major) {
                 const majorId = request.sender.details.major.toString()
-                if(majors[majorId]) {
+                if (majors[majorId]) {
                     request.sender.details.major = majors[majorId]
+                } else {
+                    request.sender.details.major = {}
                 }
             }
-            if(request.sender.details.faculty) {
+            if (request.sender.details.faculty) {
                 const facultyId = request.sender.details.faculty.toString()
-                if(faculties[facultyId]) {
+                if (faculties[facultyId]) {
                     request.sender.details.faculty = faculties[facultyId]
+                } else {
+                    request.sender.details.faculty = {}
                 }
             }
-            if(request.sender.details.enrollmentYear) {
+            if (request.sender.details.enrollmentYear) {
                 const enrollmentYearId = request.sender.details.enrollmentYear.toString()
-                if(enrollmentYears[enrollmentYearId]) {
+                if (enrollmentYears[enrollmentYearId]) {
                     request.sender.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+                } else {
+                    request.sender.details.enrollmentYear = {}
                 }
             }
             return request
@@ -485,36 +550,38 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
         requests: [],
         totalCount: 0
     }
-    if(result.length !== 0 && result[0]) {
+    if (result.length !== 0 && result[0]) {
         formattedResult.requests = result[0].requests
         formattedResult.totalCount = result[0].totalCount
     }
     return formattedResult
 }
 
-const findUserByEmail = async ({email, select = {
+const findUserByEmail = async ({
+                                   email, select = {
         email: 1, password: 1, username: 1, status: 1
-    }}) => {
+    }
+                               }) => {
     return await User.findOne({email}).select(select).exec()
 }
 
-const findByEmail = async(email) => {
-    let user = await User.findOne({ email })
-    if(!user) throw new NotFoundError()
+const findByEmail = async (email) => {
+    let user = await User.findOne({email})
+    if (!user) throw new NotFoundError()
     let populatePaths = []
-    if(user.type === 3) {
+    if (user.type === 3) {
         populatePaths.push({
             path: "registeredMajor",
-                select: "code name"
+            select: "code name"
         })
     }
-    if(user.type === 2) {
+    if (user.type === 2) {
         populatePaths.push({
             path: "major",
             select: "code name"
         },)
     }
-    if(user.type === 1) {
+    if (user.type === 1) {
         populatePaths.push(
             {
                 path: "faculty",
@@ -530,7 +597,7 @@ const findByEmail = async(email) => {
             }
         )
     }
-    if(user.details && user.type) {
+    if (user.details && user.type) {
         switch (user.type) {
             case 1:
                 user.details = await CollegeStudent.findById(user._id)
@@ -552,35 +619,35 @@ const findByEmail = async(email) => {
     return user
 }
 
-const findById = async(id) => {
+const findById = async (id) => {
     const user = await User.findById(id)
-    if(!user) throw new NotFoundError()
+    if (!user) throw new NotFoundError()
     return user.toPublicData()
 }
 
 const create = async (model, payload, session) => {
     console.log("create payload: " + payload)
     const user = await model.create([payload], {session, _id: false})
-    if(model === User) {
+    if (model === User) {
         console.log(user)
         return user[0].toPublicData()
     }
     return user
 }
 
-const uploadAvatar = async(userId, avatar) => {
-    const update = await User.findByIdAndUpdate(userId, { avatar }, { new: true})
-    if(!update) throw new NotFoundError()
+const uploadAvatar = async (userId, avatar) => {
+    const update = await User.findByIdAndUpdate(userId, {avatar}, {new: true})
+    if (!update) throw new NotFoundError()
     return update.toPublicData()
 }
 
-const removeAvatar = async(userId) => {
+const removeAvatar = async (userId) => {
     let user = await User.findById(userId)
-    if(!user) throw new NotFoundError()
+    if (!user) throw new NotFoundError()
     const session = await mongoose.startSession()
     session.startTransaction()
     try {
-        if(user.avatar) {
+        if (user.avatar) {
             const resourceId = user.avatar._id
             await deleteAssetResourceWithRef({
                 resources: [resourceId]
@@ -602,25 +669,25 @@ const removeAvatar = async(userId) => {
 
 }
 
-const updateUserById = async({
-    id,
-    payload,
-    model,
-    returnNew = true,
-    session
-}) => {
-    const update = await model.findByIdAndUpdate(id, payload, { new: returnNew, session: session })
-    if(model === User) {
+const updateUserById = async ({
+                                  id,
+                                  payload,
+                                  model,
+                                  returnNew = true,
+                                  session
+                              }) => {
+    const update = await model.findByIdAndUpdate(id, payload, {new: returnNew, session: session})
+    if (model === User) {
         return update.toPublicData()
     }
 
     return update
 }
 
-const changePassword = async({userId, currentPassword, newPassword}) => {
+const changePassword = async ({userId, currentPassword, newPassword}) => {
     const user = await User.findById(userId)
     const match = await user.comparePassword(currentPassword)
-    if(!match) throw new InvalidCredentialsError()
+    if (!match) throw new InvalidCredentialsError()
     user.password = newPassword
     await user.save()
     return "Change password success"
