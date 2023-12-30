@@ -638,7 +638,7 @@ const create = async (model, payload, session) => {
 const uploadAvatar = async (userId, avatar) => {
     const update = await User.findByIdAndUpdate(userId, {avatar}, {new: true})
     if (!update) throw new NotFoundError()
-    return update.toPublicData()
+    return update.avatar
 }
 
 const removeAvatar = async (userId) => {
@@ -655,7 +655,7 @@ const removeAvatar = async (userId) => {
             user.avatar = undefined
             user = await user.save({new: true, session})
             await session.commitTransaction()
-            return user.toPublicData()
+            return "Remove avatar success"
         } else {
             throw new BadRequestError()
         }

@@ -65,7 +65,7 @@ export const uploadAvatar = async(req, res, next) => {
 
 export const removeAvatar = async(req, res, next) => {
     new OkResponse({
-        data: await userService.removeAvatar(req)
+        message: await userService.removeAvatar(req)
     }).send(res)
 }
 
