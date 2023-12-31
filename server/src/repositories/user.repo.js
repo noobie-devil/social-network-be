@@ -625,6 +625,13 @@ const findById = async (id) => {
     return user.toPublicData()
 }
 
+const getAvatarUser = async(id) => {
+    const userAvatar = await User.findById(id)
+        .select("-_id avatar")
+    if(!userAvatar) throw new NotFoundError()
+    return userAvatar.avatar
+}
+
 const create = async (model, payload, session) => {
     console.log("create payload: " + payload)
     const user = await model.create([payload], {session, _id: false})
@@ -696,7 +703,7 @@ const changePassword = async ({userId, currentPassword, newPassword}) => {
 export {
     sendFriendRequest, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
     findById, updateUserById, create, findByEmail, uploadAvatar, removeAvatar,
-    findUsers, changePassword
+    findUsers, changePassword, getAvatarUser
 }
 
 

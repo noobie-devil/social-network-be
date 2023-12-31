@@ -64,6 +64,7 @@ export const imageResize = async(req, res, next) => {
                     await sharp(file.path).resize(500, 500)
                         .toFile(path.join(__dirname, `../public/uploadedResources/images/${file.filename}`))
                     file.path = path.join(__dirname, `../public/uploadedResources/images/${file.filename}`)
+                    console.log("unlink original file: " + file.filename)
                     fs.unlinkSync(path.join(__dirname, `../public/uploadedResources/${file.filename}`));
                 }
             })

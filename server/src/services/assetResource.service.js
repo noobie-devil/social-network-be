@@ -47,6 +47,7 @@ const updateSingleAssetResource = async({files, assetId}) => {
                 const {url} = await uploader(file)
                 assetUpdate.url = url
                 assetUpdate = await assetUpdate.save({new: true})
+                fs.unlinkSync(file.path)
                 // no need to wait
                 deleter({deleteUrl})
                 return assetUpdate

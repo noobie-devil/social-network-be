@@ -10,6 +10,8 @@ import {InvalidTokenError} from "../core/errors/invalidToken.error.js";
 import jwt from "jsonwebtoken";
 import KeyToken from "../models/keyToken.model.js";
 import {loginSchema, logoutRequestSchema, refreshTokenSchema} from "../schemaValidate/auth.schema.js";
+import {NotFoundError} from "../core/errors/notFound.error.js";
+import {UnprocessableEntityError} from "../core/errors/unprocessableEntity.error.js";
 
 
 const logout = async(keystore) => {
@@ -91,16 +93,21 @@ export const refreshTokenHandler = async(req, isAdmin) => {
 const login = async(req, isAdmin) => {
     await loginSchema.validateAsync(req.body)
     const {email, password} = req.body
-    console.log(req.body)
     let foundUser;
     if(isAdmin) {
         foundUser = await adminRepo.findAdminByEmail(email)
     } else {
-        foundUser = await userRepo.findByEmail(email)
+        try {
+            foundUser = await userRepo.findByEmail(email)
+        } catch (error) {
+            if(error instanceof NotFoundError) {
+                throw new UnprocessableEntityError("Invalid email or password")
+            }
+            throw error
+        }
     }
-    if(!foundUser) throw new InvalidCredentialsError()
     const passwordMatch = await foundUser.comparePassword(password)
-    if(!passwordMatch) throw new InvalidCredentialsError()
+    if(!passwordMatch) throw new UnprocessableEntityError("Invalid email or password")
     const privateKey = crypto.randomBytes(64).toString("hex")
     const publicKey = crypto.randomBytes(64).toString("hex")
     const tokens = await createTokenPair({user_id: foundUser._id, email}, publicKey, privateKey)

@@ -29,7 +29,7 @@ const uploadAvatar = async(req) => {
         const assetId = user.avatar._id
         await updateSingleAssetResource({files: req.files, assetId})
 
-        return await userRepository.findById(req.user._id)
+        return await userRepository.getAvatarUser(req.user._id)
     }
     const {resources} = await uploadAssetResource(req)
     if(resources && resources.length !== 0) {
