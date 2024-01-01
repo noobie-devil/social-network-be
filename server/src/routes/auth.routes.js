@@ -20,7 +20,7 @@ authRouter.post('/register', asyncHandler(userRegister))
 authRouter.post('/refresh-token', asyncHandler(userRefreshToken))
 authRouter.put('/avatar', authentication, uploadAttachments.fields([
     { name: 'images', maxCount: 1}
-]), imageResize, asyncHandler(uploadAvatar))
+]), asyncHandler(uploadAvatar))
 authRouter.delete('/avatar', authentication, asyncHandler(removeAvatar))
 authRouter.put('/profile', authentication, asyncHandler(userUpdateProfile))
 authRouter.put('/change-password', authentication, asyncHandler(changePassword))
