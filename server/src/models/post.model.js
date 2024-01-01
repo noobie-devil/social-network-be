@@ -62,7 +62,7 @@ PostSchema.plugin(longTimestampsPlugin);
 export const requiredPopulatedObject = [
     {
       path: "userAuthor",
-      select: "username email avatar",
+      select: "username firstName lastName avatar",
     },
     {
       path: "userPageAuthor",
@@ -102,15 +102,16 @@ export const requiredPopulatedObject = [
     }
 ]
 
-PostSchema.pre('find', function() {
-    this.populate(requiredPopulatedObject)
-})
-PostSchema.pre('findOne', function() {
-    this.populate(requiredPopulatedObject)
-})
-PostSchema.pre('findOneAndUpdate', function() {
-    this.populate(requiredPopulatedObject)
-})
+// PostSchema.pre('find', function() {
+//     this.populate(requiredPopulatedObject)
+// })
+// PostSchema.pre('findOne', function() {
+//     this.populate(requiredPopulatedObject)
+// })
+// PostSchema.pre('findOneAndUpdate', function() {
+//     this.populate(requiredPopulatedObject)
+// })
+
 // PostSchema.post('save', async function(doc, next) {
 //     console.log(doc)
 //     await doc.populate(requiredPopulatedObject)

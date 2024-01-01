@@ -70,11 +70,10 @@ const likeActionsHandler = async(req, unlike) => {
             return await postRepository.likePost(req.body)
         }
     } else {
-        req.body.user = req.user._id
         if(unlike) {
-            return await postRepository.unlikePost(req.body)
+            return await postRepository.unlikePost({...req.body, user: req.user})
         } else {
-            return await postRepository.likePost(req.body)
+            return await postRepository.likePost({...req.body, user: req.user})
         }
     }
 }
@@ -89,7 +88,7 @@ const getUserPosts = async(req) => {
     await queryUserPostsSchema.validateAsync(req.query)
     const userId = req.params.userId
     validateMongodbId(userId)
-    return await postRepository.getUserPosts(userId, req.query)
+    return await postRepository.getUserPosts({...req.query, userId, currentUser: req.user})
 }
 
 const getFeedPosts = async(req) => {
@@ -103,7 +102,8 @@ const getFeedPosts = async(req) => {
     } else {
         _id = req.user._id
     }
-    return await postRepository.getFeedPosts(_id, req.query)
+    // return await postRepository.getFeedPosts(_id, req.query)
+    return await postRepository.getFeedPosts({...req.query, user: req.user})
 }
 
 const getLikesPost = async(req) => {
@@ -115,7 +115,10 @@ const getLikesPost = async(req) => {
     validateMongodbId(postId)
     await baseQuerySchema.validateAsync(req.query)
     // return await postRepository.getLikesPost(postId, req.query)
-    return await postRepository.getLikesPost(currentActorId, postId, req.query)
+    // req.query.postId = postId
+    // req.query.userId = req.user._id
+    return await postRepository.getRelatesLikePost({...req.query, postId: postId, user: req.user})
+    // return await postRepository.getLikesPost(currentActorId, postId, req.query)
 }
 
 

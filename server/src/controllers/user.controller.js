@@ -9,7 +9,7 @@ export const sendFriendRequest = async(req, res, next) => {
 
 export const respondToFriendRequest = async(req, res, next) => {
     new OkResponse({
-        message: await userService.respondToFriendRequest(req)
+        data: await userService.respondToFriendRequest(req)
     }).send(res)
 }
 

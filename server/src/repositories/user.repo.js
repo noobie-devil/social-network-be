@@ -45,7 +45,7 @@ const respondFriendRequest = async ({friendshipId, receiverId, status}) => {
         }
 
         await session.commitTransaction()
-        return "Response success";
+        return existingFriendShip.receiver.friendCount
     } catch (err) {
         await session.abortTransaction()
         throw err
