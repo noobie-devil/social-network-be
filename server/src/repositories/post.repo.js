@@ -263,8 +263,8 @@ const getUserPosts = async ({currentUser, userId, page = 1, limit = 10}) => {
             }
         },
         { $sort: { updatedAt: -1} },
-        { $skip: skip },
-        { $limit: limit },
+        { $skip: parseInt(skip, 10), },
+        { $limit: parseInt(limit, 10), },
         {
             $lookup: {
                 from: "resourcestorages",
@@ -475,7 +475,7 @@ const getRelatesLikePost = async ({user, postId, page = 1, limit = 10}) => {
         likes = await Like.aggregate([
             { $match: queryFindRelate },
             { $skip: 0 },
-            { $limit: originLimit },
+            { $limit: parseInt(originLimit, 10), },
             ...baseQuery,
             {
                 $addFields: {
@@ -503,7 +503,7 @@ const getRelatesLikePost = async ({user, postId, page = 1, limit = 10}) => {
             const additionalLikes = await Like.aggregate([
                 { $match: { post: new mongoose.Types.ObjectId(postId), user: { $nin: filterIds } } },
                 { $skip: 0 },
-                { $limit: originLimit - likes.length},
+                { $limit: parseInt(originLimit - likes.length, 10) },
                 ...baseQuery,
                 {
                     $addFields: {
@@ -520,8 +520,8 @@ const getRelatesLikePost = async ({user, postId, page = 1, limit = 10}) => {
             if(byPassed > 0) {
                 likes = await Like.aggregate([
                     { $match: queryFindRelate },
-                    { $skip: skip },
-                    { $limit: byPassed},
+                    { $skip: parseInt(skip, 10), },
+                    { $limit: parseInt(byPassed, 10),},
                     ...baseQuery,
                     {
                         $addFields: {
@@ -553,8 +553,8 @@ const getRelatesLikePost = async ({user, postId, page = 1, limit = 10}) => {
         }
         const additionalLikes = await Like.aggregate([
             { $match: { post: new mongoose.Types.ObjectId(postId), user: { $nin: filterIds } } },
-            { $skip: skip },
-            { $limit: originLimit - byPassed},
+            { $skip: parseInt(skip, 10), },
+            { $limit: parseInt(originLimit - byPassed, 10)},
             ...baseQuery,
             {
                 $addFields: {
@@ -617,8 +617,8 @@ const getFeedPosts = async({user, page = 1, limit = 10}) => {
             }
         },
         { $sort: { updatedAt: -1} },
-        { $skip: skip },
-        { $limit: limit },
+        { $skip: parseInt(skip, 10), },
+        { $limit: parseInt(limit, 10), },
         {
             $lookup: {
                 from: "resourcestorages",
