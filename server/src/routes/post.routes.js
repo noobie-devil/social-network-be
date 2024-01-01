@@ -19,7 +19,7 @@ postRouter.use(authentication)
 postRouter.post('/uploads', uploadAttachments.fields([
     { name: 'images', maxCount: 30},
     { name: 'videos', maxCount: 10}
-]), imageResize, asyncHandler(uploadPostResources))
+]), asyncHandler(uploadPostResources))
 // Get new feeds
 postRouter.get('/new-feeds', asyncHandler(getFeedPosts))
 // User posts

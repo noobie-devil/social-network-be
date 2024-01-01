@@ -8,6 +8,6 @@ const assetResourceRouter = express.Router()
 assetResourceRouter.post('/upload', uploadAttachments.fields([
     { name: 'images', maxCount: 30},
     { name: 'videos', maxCount: 10}
-]), imageResize, uploadAssetResource)
+]), uploadAssetResource)
 
 export default assetResourceRouter
