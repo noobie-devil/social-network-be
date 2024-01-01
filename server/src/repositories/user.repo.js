@@ -1,13 +1,10 @@
 import Friendship, {FriendState} from "../models/friendship.model.js";
 import {BadRequestError} from "../core/errors/badRequest.error.js";
 import mongoose from "mongoose";
-import {cleanData, getUnSelectObjFromSelectArr, unSelectObjWithInput} from "../utils/lodash.utils.js";
 import {NotFoundError} from "../core/errors/notFound.error.js";
-import {User, CollegeStudent, Lecturer, Candidate} from "../models/user.model.js";
+import {User} from "../models/user.model.js";
 import {unSelectUserFieldToPublic} from "../utils/global.utils.js";
-import ResourceStorage from "../models/resourceStorage.model.js";
-import {deleteAssetResource, deleteAssetResourceWithRef} from "../services/assetResource.service.js";
-import {adminFieldPopulated} from "../models/admin.model.js";
+import {deleteAssetResourceWithRef} from "../services/assetResource.service.js";
 import Major from "../models/major.model.js";
 import Faculty from "../models/faculty.model.js";
 import EnrollmentYear from "../models/enrollmentYear.model.js";
@@ -416,7 +413,7 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                             }
                         },
                         {
-                            $project: unSelectUserFieldToPublic({ extend})
+                            $project: unSelectUserFieldToPublic({extend})
                         }
                     ]
                 },
@@ -557,63 +554,77 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
     return formattedResult
 }
 
-const findUserByEmail = async ({
-                                   email, select = {
-        email: 1, password: 1, username: 1, status: 1
-    }
-                               }) => {
-    return await User.findOne({email}).select(select).exec()
-}
-
 const findByEmail = async (email) => {
     let user = await User.findOne({email})
     if (!user) throw new NotFoundError()
-    let populatePaths = []
-    if (user.type === 3) {
-        populatePaths.push({
-            path: "registeredMajor",
-            select: "code name"
-        })
+    let uniqueMajorIds = new Set()
+    let uniqueFacultyIds = new Set()
+    let uniqueEnrollmentYearIds = new Set()
+    if (user.details.major) {
+        uniqueMajorIds = Array.from([user.details.major])
     }
-    if (user.type === 2) {
-        populatePaths.push({
-            path: "major",
-            select: "code name"
-        },)
+    if (user.details.faculty) {
+        uniqueFacultyIds = Array.from([user.details.faculty])
     }
-    if (user.type === 1) {
-        populatePaths.push(
-            {
-                path: "faculty",
-                select: "code name"
-            },
-            {
-                path: "major",
-                select: "code name"
-            },
-            {
-                path: "enrollmentYear",
-                select: "name startYear"
-            }
-        )
+    if (user.details.registeredMajor) {
+        uniqueMajorIds = Array.from([user.details.registeredMajor])
     }
-    if (user.details && user.type) {
-        switch (user.type) {
-            case 1:
-                user.details = await CollegeStudent.findById(user._id)
-                    .populate(populatePaths)
-                    .select("-_id")
-                break
-            case 2:
-                user.details = await Lecturer.findById(user._id)
-                    .populate(populatePaths)
-                    .select("-_id")
-                break
-            case 3:
-                user.details = await Candidate.findById(user._id)
-                    .populate(populatePaths)
-                    .select("-_id")
-                break
+    if (user.details.enrollmentYear) {
+        uniqueEnrollmentYearIds = Array.from([user.details.enrollmentYear])
+    }
+    let [majors, faculties, enrollmentYears] = await Promise.all([
+        Major.find({_id: {$in: uniqueMajorIds}})
+            .select("code name")
+            .lean(),
+        Faculty.find({_id: {$in: uniqueFacultyIds}})
+            .select("code name")
+            .lean(),
+        EnrollmentYear.find({_id: {$in: uniqueEnrollmentYearIds}})
+            .select("name startYear")
+            .lean()
+    ])
+    majors = majors.reduce((acc, major) => {
+        acc[major._id.toString()] = major
+        return acc
+    }, {})
+    faculties = faculties.reduce((acc, faculty) => {
+        acc[faculty._id.toString()] = faculty
+        return acc
+    }, {})
+    enrollmentYears = enrollmentYears.reduce((acc, enrollmentYear) => {
+        acc[enrollmentYear._id.toString()] = enrollmentYear
+        return acc
+    }, {})
+    if (user.details.major) {
+        const majorId = user.details.major.toString()
+        if (majors[majorId]) {
+            user.details.major = majors[majorId]
+        } else {
+            user.details.major = {}
+        }
+    }
+    if (user.details.faculty) {
+        const facultyId = user.details.faculty.toString()
+        if (faculties[facultyId]) {
+            user.details.faculty = faculties[facultyId]
+        } else {
+            user.details.faculty = {}
+        }
+    }
+    if (user.details.registeredMajor) {
+        const registeredMajorId = user.details.registeredMajor.toString()
+        if (majors[registeredMajorId]) {
+            user.details.registeredMajor = majors[registeredMajorId]
+        } else {
+            user.details.registeredMajor = {}
+        }
+    }
+    if (user.details.enrollmentYear) {
+        const enrollmentYearId = user.details.enrollmentYear.toString()
+        if (enrollmentYears[enrollmentYearId]) {
+            user.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+        } else {
+            user.details.enrollmentYear = {}
         }
     }
     return user
@@ -625,10 +636,10 @@ const findById = async (id) => {
     return user.toPublicData()
 }
 
-const getAvatarUser = async(id) => {
+const getAvatarUser = async (id) => {
     const userAvatar = await User.findById(id)
         .select("-_id avatar")
-    if(!userAvatar) throw new NotFoundError()
+    if (!userAvatar) throw new NotFoundError()
     return userAvatar.avatar
 }
 
@@ -683,11 +694,81 @@ const updateUserById = async ({
                                   returnNew = true,
                                   session
                               }) => {
-    const update = await model.findByIdAndUpdate(id, payload, {new: returnNew, session: session})
+    let update = await model.findByIdAndUpdate(id, payload, {new: returnNew, session: session})
     if (model === User) {
-        return update.toPublicData()
+        update = update.toPublicData()
+        let uniqueMajorIds = new Set()
+        let uniqueFacultyIds = new Set()
+        let uniqueEnrollmentYearIds = new Set()
+        if (update.details.major) {
+            uniqueMajorIds = Array.from([update.details.major])
+        }
+        if (update.details.faculty) {
+            uniqueFacultyIds = Array.from([update.details.faculty])
+        }
+        if (update.details.registeredMajor) {
+            uniqueMajorIds = Array.from([update.details.registeredMajor])
+        }
+        if (update.details.enrollmentYear) {
+            uniqueEnrollmentYearIds = Array.from([update.details.enrollmentYear])
+        }
+        let [majors, faculties, enrollmentYears] = await Promise.all([
+            Major.find({_id: {$in: uniqueMajorIds}})
+                .select("code name")
+                .lean(),
+            Faculty.find({_id: {$in: uniqueFacultyIds}})
+                .select("code name")
+                .lean(),
+            EnrollmentYear.find({_id: {$in: uniqueEnrollmentYearIds}})
+                .select("name startYear")
+                .lean()
+        ])
+        majors = majors.reduce((acc, major) => {
+            acc[major._id.toString()] = major
+            return acc
+        }, {})
+        faculties = faculties.reduce((acc, faculty) => {
+            acc[faculty._id.toString()] = faculty
+            return acc
+        }, {})
+        enrollmentYears = enrollmentYears.reduce((acc, enrollmentYear) => {
+            acc[enrollmentYear._id.toString()] = enrollmentYear
+            return acc
+        }, {})
+        if (update.details.major) {
+            const majorId = update.details.major.toString()
+            if (majors[majorId]) {
+                update.details.major = majors[majorId]
+            } else {
+                update.details.major = {}
+            }
+        }
+        if (update.details.faculty) {
+            const facultyId = update.details.faculty.toString()
+            if (faculties[facultyId]) {
+                update.details.faculty = faculties[facultyId]
+            } else {
+                update.details.faculty = {}
+            }
+        }
+        if (update.details.registeredMajor) {
+            const registeredMajorId = update.details.registeredMajor.toString()
+            if (majors[registeredMajorId]) {
+                update.details.registeredMajor = majors[registeredMajorId]
+            } else {
+                update.details.registeredMajor = {}
+            }
+        }
+        if (update.details.enrollmentYear) {
+            const enrollmentYearId = update.details.enrollmentYear.toString()
+            if (enrollmentYears[enrollmentYearId]) {
+                update.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+            } else {
+                update.details.enrollmentYear = {}
+            }
+        }
+        return update
     }
-
     return update
 }
 
@@ -701,7 +782,7 @@ const changePassword = async ({userId, currentPassword, newPassword}) => {
 }
 
 export {
-    sendFriendRequest, findUserByEmail, respondFriendRequest, getFriendsList, getFriendRequests,
+    sendFriendRequest, respondFriendRequest, getFriendsList, getFriendRequests,
     findById, updateUserById, create, findByEmail, uploadAvatar, removeAvatar,
     findUsers, changePassword, getAvatarUser
 }

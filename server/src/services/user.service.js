@@ -91,7 +91,7 @@ export const userUpdateProfile = async(req) => {
     req.body['type'] = req.user.type
     await updateUserSchema.validateAsync(req.body)
     const username = req.body.username
-    if(!username && !username.trim().isEmpty()) {
+    if(username && !username.trim().isEmpty()) {
         const existUserName = await User.findOne({
             _id: { $ne: req.user._id},
             username
