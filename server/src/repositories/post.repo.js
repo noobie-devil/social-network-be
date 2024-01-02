@@ -228,7 +228,7 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
             post.likes = post.likes.filter(id => !id.equals(existingLike._id))
             await post.save({session})
         }
-        await session.commitransaction()
+        await session.commitTransaction()
     } catch (e) {
         await session.abortTransaction()
         throw e
