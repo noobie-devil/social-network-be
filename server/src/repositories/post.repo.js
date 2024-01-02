@@ -59,7 +59,7 @@ const updatePostPrivacy = async (userId, postId, payload) => {
     const postUpdate = await Post.findOneAndUpdate({
         userAuthor: userId,
         _id: postId
-    }, payload)
+    }, payload, {new: true})
     if(!postUpdate) throw new NotFoundError()
     return {
         _id: postId,
