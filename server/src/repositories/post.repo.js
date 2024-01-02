@@ -265,6 +265,14 @@ const getUserPosts = async ({currentUser, userId, page = 1, limit = 10}) => {
                 ]
             }
         )
+        query.push(
+            {
+                $and: [
+                    { userAuthor: new mongoose.Types.ObjectId(userId)  },
+                    { privacyMode: 2 }
+                ]
+            }
+        )
     }
     if(friendIds.includes(userId)) {
         query.push(
