@@ -28,12 +28,12 @@ const PostSchema = new Schema(
             type: Number,
             default: 0
         },
-        likes: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: "Like"
-            }
-        ],
+        // likes: [
+        //     {
+        //         type: Schema.Types.ObjectId,
+        //         ref: "Like"
+        //     }
+        // ],
         sharedPost: {
             type: Schema.Types.ObjectId,
             ref: 'Post'

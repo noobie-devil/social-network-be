@@ -190,8 +190,8 @@ const likePost = async ({postId, user, userPage, userType = 'User'}) => {
             const newLike = new Like(likeInfo)
             await newLike.save({session})
             post.likeCounts += 1
-            post.likes.unshift(newLike._id)
-            post.likes = post.likes.slice(0, 10)
+            // post.likes.unshift(newLike._id)
+            // post.likes = post.likes.slice(0, 10)
             await post.save({session})
             await session.commitTransaction()
         } catch (e) {
@@ -228,7 +228,7 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
             if(post.likeCounts < 0) {
                 throw new BadRequestError("Failed to unlike the post")
             }
-            post.likes = post.likes.filter(id => !id.equals(existingLike._id))
+            // post.likes = post.likes.filter(id => !id.equals(existingLike._id))
             await post.save({session})
         }
         await session.commitTransaction()
