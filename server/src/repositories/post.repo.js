@@ -673,10 +673,17 @@ const getFeedPosts = async({user, page = 1, limit = 10}) => {
                     {
                         $and: [
                             { userAuthor: { $in: followingUsers } },
+                            // { userPageAuthor: { $in: followingPages } },
+                            { privacyMode: 1}
+                        ]
+                    },
+                    {
+                        $and: [
                             { userPageAuthor: { $in: followingPages } },
                             { privacyMode: 1}
                         ]
                     },
+
                     {
                         $and: [
                             { userAuthor: { $in: friendIds } },
