@@ -631,18 +631,34 @@ const getFeedPosts = async({user, page = 1, limit = 10}) => {
         followingUsers = currentListFollow[0].followingUsers.map(follow => follow.user);
         followingPages = currentListFollow[0].followingPages.map(follow => follow.page);
     }
-    followingUsers.push(user._id)
-    followingPages.push(user._id)
+    // followingUsers.push(user._id)
+    // followingPages.push(user._id)
     followingUsers = Array.from(new Set([...friendIds, ...followingUsers]))
     const skip = (page - 1) * limit
     const posts = await Post.aggregate([
         {
             $match: {
                 $or: [
-                    { userAuthor: { $in: followingUsers } },
-                    { userPageAuthor: { $in: followingPages } }
-                ],
-                privacyMode: 1
+                    {
+                        $and: [
+                            { userAuthor: { $in: [user._id] } },
+                        ]
+                    },
+                    {
+                        $and: [
+                            { userAuthor: { $in: followingUsers } },
+                            { userPageAuthor: { $in: followingPages } },
+                            { privacyMode: 1}
+                        ]
+                    },
+                    {
+                        $and: [
+                            { userAuthor: { $in: friendIds } },
+                            { privacyMode: 2}
+                        ]
+                    }
+
+                ]
             }
         },
         { $sort: { updatedAt: -1} },
