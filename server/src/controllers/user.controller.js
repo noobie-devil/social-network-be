@@ -74,3 +74,9 @@ export const changePassword = async(req, res, next) => {
         message: await userService.changePassword(req)
     }).send(res)
 }
+
+export const findUserById = async(req, res, next) => {
+    new OkResponse({
+        data: await userService.findUserById(req)
+    }).send(res)
+}

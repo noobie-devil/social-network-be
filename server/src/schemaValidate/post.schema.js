@@ -23,7 +23,9 @@ const createPostSchema = Joi.object({
     tags: Joi.array().items(Joi.string().required()).optional()
 })
 
-
+const updatePostPrivacySchema = Joi.object({
+    privacyMode: Joi.number().required().valid(0,1,2)
+})
 const updatePostSchema = Joi.object({
     content: Joi.when('postResources', {
         is: Joi.array().items(Joi.string().custom(isValidMongoId)).required(),
@@ -55,5 +57,6 @@ export {
     likePostSchema,
     getFeedPostsSchema,
     updatePostSchema,
-    queryUserPostsSchema
+    queryUserPostsSchema,
+    updatePostPrivacySchema
 }

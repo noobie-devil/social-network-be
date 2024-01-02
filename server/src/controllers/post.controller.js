@@ -19,6 +19,12 @@ export const getPostById = async (req, res, next) => {
     }).send(res)
 }
 
+export const updatePostPrivacy = async(req, res, next) => {
+    new SuccessResponse({
+        data: await postService.updatePostPrivacy(req)
+    }).send(res)
+}
+
 export const updatePost = async(req, res, next) => {
     new SuccessResponse({
         data: await postService.updatePost(req)

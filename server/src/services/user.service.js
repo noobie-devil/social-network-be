@@ -86,6 +86,13 @@ const findUsers = async(req) => {
     return await userRepository.findUsers({...req.query, userId})
 }
 
+const findUserById = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const userId = req.params.userId;
+    validateMongodbId(userId);
+    return await userRepository.findUserById(req.user, userId)
+}
+
 export const userUpdateProfile = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
     req.body['type'] = req.user.type
@@ -350,5 +357,6 @@ export {
     uploadAvatar,
     removeAvatar,
     findUsers,
-    changePassword
+    changePassword,
+    findUserById
 }

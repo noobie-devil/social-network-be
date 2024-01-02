@@ -554,6 +554,102 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
     return formattedResult
 }
 
+const findUserById = async(user, id) => {
+    let findUser = await User.findById(id)
+    findUser = findUser.toPublicData()
+    let friendState = ""
+    if(findUser.friends && findUser.friends.includes(id)) {
+        friendState = "Accepted"
+    }
+    if (!findUser) throw new NotFoundError()
+    if(friendState === "") {
+        const friendShipUserState = await Friendship.findOne({
+            $or: [
+                { sender: user._id, status: { $in: [FriendState.PENDING, FriendState.ACCEPTED]}, receiver: { $in: [id]}},
+                { sender: id, status: { $in: [FriendState.PENDING, FriendState.ACCEPTED]}, receiver: { $in: [user._id]}},
+            ]
+        }).select("status")
+        if(friendShipUserState) {
+            friendState = friendShipUserState.status
+        }
+    }
+
+    let uniqueMajorIds = new Set()
+    let uniqueFacultyIds = new Set()
+    let uniqueEnrollmentYearIds = new Set()
+    if (findUser.details.major) {
+        uniqueMajorIds = Array.from([findUser.details.major])
+    }
+    if (findUser.details.faculty) {
+        uniqueFacultyIds = Array.from([findUser.details.faculty])
+    }
+    if (findUser.details.registeredMajor) {
+        uniqueMajorIds = Array.from([findUser.details.registeredMajor])
+    }
+    if (findUser.details.enrollmentYear) {
+        uniqueEnrollmentYearIds = Array.from([findUser.details.enrollmentYear])
+    }
+    let [majors, faculties, enrollmentYears] = await Promise.all([
+        Major.find({_id: {$in: uniqueMajorIds}})
+            .select("code name")
+            .lean(),
+        Faculty.find({_id: {$in: uniqueFacultyIds}})
+            .select("code name")
+            .lean(),
+        EnrollmentYear.find({_id: {$in: uniqueEnrollmentYearIds}})
+            .select("name startYear")
+            .lean()
+    ])
+    majors = majors.reduce((acc, major) => {
+        acc[major._id.toString()] = major
+        return acc
+    }, {})
+    faculties = faculties.reduce((acc, faculty) => {
+        acc[faculty._id.toString()] = faculty
+        return acc
+    }, {})
+    enrollmentYears = enrollmentYears.reduce((acc, enrollmentYear) => {
+        acc[enrollmentYear._id.toString()] = enrollmentYear
+        return acc
+    }, {})
+    if (findUser.details.major) {
+        const majorId = findUser.details.major.toString()
+        if (majors[majorId]) {
+            findUser.details.major = majors[majorId]
+        } else {
+            findUser.details.major = {}
+        }
+    }
+    if (findUser.details.faculty) {
+        const facultyId = findUser.details.faculty.toString()
+        if (faculties[facultyId]) {
+            findUser.details.faculty = faculties[facultyId]
+        } else {
+            findUser.details.faculty = {}
+        }
+    }
+    if (findUser.details.registeredMajor) {
+        const registeredMajorId = findUser.details.registeredMajor.toString()
+        if (majors[registeredMajorId]) {
+            findUser.details.registeredMajor = majors[registeredMajorId]
+        } else {
+            findUser.details.registeredMajor = {}
+        }
+    }
+    if (findUser.details.enrollmentYear) {
+        const enrollmentYearId = findUser.details.enrollmentYear.toString()
+        if (enrollmentYears[enrollmentYearId]) {
+            findUser.details.enrollmentYear = enrollmentYears[enrollmentYearId]
+        } else {
+            findUser.details.enrollmentYear = {}
+        }
+    }
+    return {
+        user: findUser,
+        friendState
+    }
+}
+
 const findByEmail = async (email) => {
     let user = await User.findOne({email})
     if (!user) throw new NotFoundError()
@@ -784,7 +880,7 @@ const changePassword = async ({userId, currentPassword, newPassword}) => {
 export {
     sendFriendRequest, respondFriendRequest, getFriendsList, getFriendRequests,
     findById, updateUserById, create, findByEmail, uploadAvatar, removeAvatar,
-    findUsers, changePassword, getAvatarUser
+    findUsers, changePassword, getAvatarUser, findUserById
 }
 
 

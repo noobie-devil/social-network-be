@@ -3,7 +3,7 @@ import {
     createPostSchema,
     getFeedPostsSchema,
     likePostSchema,
-    queryUserPostsSchema,
+    queryUserPostsSchema, updatePostPrivacySchema,
     updatePostSchema
 } from "../schemaValidate/post.schema.js";
 import {uploadAssetResource} from "./assetResource.service.js";
@@ -34,13 +34,20 @@ const uploadPostResources = async(req) => {
     return await uploadAssetResource(req)
 }
 
+const updatePostPrivacy = async(req) => {
+    if(!req.user) throw new InvalidCredentialsError()
+    const postId = req.params.postId
+    validateMongodbId(postId)
+    await updatePostPrivacySchema.validateAsync(req.body)
+    return await postRepository.updatePostPrivacy(req.user._id, postId, req.body)
+}
 
 const updatePost = async(req) => {
     if(!req.user) throw new InvalidCredentialsError()
     const postId = req.params.postId
     validateMongodbId(postId)
     await updatePostSchema.validateAsync(req.body)
-    return await postRepository.updatePost(postId, req.body)
+    return await postRepository.updatePost(req.user._id, postId, req.body)
 }
 
 const deletePost = async(req) => {
@@ -132,5 +139,6 @@ export {
     uploadPostResources,
     getLikesPost,
     getFeedPosts,
-    getUserPosts
+    getUserPosts,
+    updatePostPrivacy
 }

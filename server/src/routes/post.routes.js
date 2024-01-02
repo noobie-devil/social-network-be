@@ -6,7 +6,7 @@ import {
     getFeedPosts,
     getLikesPost, getPostById, getUserPosts,
     likePost,
-    unlikePost, updatePost,
+    unlikePost, updatePost, updatePostPrivacy,
     uploadPostResources
 } from "../controllers/post.controller.js";
 import {asyncHandler} from "../core/utils/core.utils.js";
@@ -28,6 +28,7 @@ postRouter.get('/users/:userId', asyncHandler(getUserPosts))
 postRouter.get('/:postId', asyncHandler(getPostById))
 postRouter.post('/', asyncHandler(createPost))
 postRouter.put('/:postId', asyncHandler(updatePost))
+postRouter.put('/privacy/:postId', asyncHandler(updatePostPrivacy))
 postRouter.delete('/:postId', asyncHandler(deletePost))
 
 // Like handlers

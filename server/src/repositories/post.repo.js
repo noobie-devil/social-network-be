@@ -54,10 +54,27 @@ const getPostById = async (postId) => {
     return post
 }
 
-const updatePost = async (postId, payload) => {
+const updatePostPrivacy = async (userId, postId, payload) => {
+    payload = cleanData(payload)
+    const postUpdate = await Post.findOneAndUpdate({
+        userAuthor: userId,
+        _id: postId
+    }, payload)
+    if(!postUpdate) throw new NotFoundError()
+    return {
+        _id: postId,
+        privacyMode: postUpdate.privacyMode,
+        updatedAt: postUpdate.updatedAt
+    }
+}
+
+const updatePost = async (userId, postId, payload) => {
     payload = cleanData(payload)
     console.log(payload)
-    const post = await Post.findById(postId)
+    const post = await Post.findOne({
+        _id: postId,
+        userAuthor: userId
+    })
     if (!post) throw new NotFoundError()
     const invalidCondition = (!payload.postResources || payload.postResources.length === 0) && (!payload.content || payload.content.toString() === '')
 
@@ -97,6 +114,7 @@ const updatePost = async (postId, payload) => {
                 })
             }
             return {
+                _id: postId,
                 content: post.content,
                 postResources: post.postResources,
                 updatedAt: post.updatedAt
@@ -908,5 +926,6 @@ export {
     getLikesPost,
     getFeedPosts,
     getUserPosts,
-    getRelatesLikePost
+    getRelatesLikePost,
+    updatePostPrivacy
 }

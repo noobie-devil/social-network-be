@@ -1020,6 +1020,56 @@
 
 /**
  * @swagger
+ * /api/v1/posts/privacy/{postId}:
+ *  put:
+ *    summary: Update post privacy
+ *    tags: [Post]
+ *    description: ''
+ *    parameters:
+ *      - name: postId
+ *        in: path
+ *        description: ID of post to update
+ *        required: true
+ *        schema:
+ *          type: string
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      privacyMode:
+ *                          type: integer
+ *                          enums: [0,1,2]
+ *    responses:
+ *      200:
+ *          description: Update post success
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
  * /api/v1/posts/{postId}:
  *  put:
  *    summary: Update post
@@ -1389,6 +1439,45 @@
  *      - bearerAuth: []
  */
 
+/**
+ * @swagger
+ * /api/v1/search/users/{userId}:
+ *  get:
+ *    summary: Find User By ID
+ *    tags: [Client Search]
+ *    description: ''
+ *    parameters:
+ *     - name: userId
+ *       in: path
+ *       description: UserId
+ *       required: true
+ *       schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
 
 
 /**
