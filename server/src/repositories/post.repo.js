@@ -225,6 +225,9 @@ const unlikePost = async ({postId, user, userPage, userType = 'User'}) => {
             throw new BadRequestError("The user has not liked the post")
         } else {
             post.likeCounts -= 1
+            if(post.likeCounts < 0) {
+                throw new BadRequestError("Failed to unlike the post")
+            }
             post.likes = post.likes.filter(id => !id.equals(existingLike._id))
             await post.save({session})
         }
