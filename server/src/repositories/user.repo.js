@@ -109,6 +109,30 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
                         }
                     },
                     {
+                      $lookup: {
+                          from: "resourcestorages",
+                          localField: "avatar",
+                          foreignField: "_id",
+                          as: "avatar"
+                      }
+                    },
+                    {
+                        $set: {
+                            // avatar: {
+                            //     $ifNull: [{$first: "$avatar"}, {}],
+                            // },
+                            avatar: {
+                                $ifNull: [
+                                    {
+                                        _id: { $first: "$avatar._id"},
+                                        url: { $first: "$avatar.url"}
+                                    },
+                                    {}
+                                ]
+                            }
+                        }
+                    },
+                    {
                         $project: unSelectUserFieldToPublic({extend})
                     }
                 ]
@@ -164,6 +188,7 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
     ]);
 
     const result = await query.exec()
+    console.log(result[0].friends)
     let formattedResult = {
         friends: [],
         totalCount: 0

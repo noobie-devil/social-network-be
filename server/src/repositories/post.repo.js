@@ -466,7 +466,33 @@ const getRelatesLikePost = async ({user, postId, page = 1, limit = 10}) => {
     console.log(filterIds)
     const baseQuery = [
         { $sort: { createdAt: -1 } },
-        { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user"} },
+        // { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user"} },
+        {
+            $lookup: {
+                from: "users",
+                localField: "user",
+                foreignField: "_id",
+                let: {i: "$user"},
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "resourcestorages",
+                            localField: "avatar",
+                            foreignField: "_id",
+                            as: "avatar"
+                        }
+                    },
+                    {
+                        $set: {
+                            avatar: {
+                                $ifNull: [{$first: "$avatar"}, {}],
+                            }
+                        }
+                    }
+                ],
+                as: "user"
+            }
+        },
         {
             $project: {
                 username: {
