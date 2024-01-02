@@ -785,14 +785,16 @@ const getFeedPosts = async({user, page = 1, limit = 10}) => {
         {
             $lookup: {
                 from: "likes",
-                let: { postId: "$_id", friendIds},
+                localField: "_id",
+                foreignField: "post",
+                // let: { postId: "$_id", friendIds},
+                let: { i: "$like"},
                 pipeline: [
                     {
                         $match: {
                             $expr: {
-                                $and: [
-                                    { $eq: ["$post", "$$postId"] },
-                                    { $in: ["$user", friendIds]}
+                                $or: [
+                                    { $in: ["$user", [user._id,...friendIds]] },
                                 ]
                             }
                         }
@@ -800,7 +802,7 @@ const getFeedPosts = async({user, page = 1, limit = 10}) => {
                     {
                         $addFields: {
                             indexInFriendIds: {
-                                $indexOfArray: [friendIds, "$user"]
+                                $indexOfArray: [[user._id,...friendIds], "$user"]
                             }
                         }
                     },
