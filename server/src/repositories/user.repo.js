@@ -188,7 +188,6 @@ const getFriendsList = async (userId, {search = "", limit = 20, page = 1, select
     ]);
 
     const result = await query.exec()
-    console.log(result[0].friends)
     let formattedResult = {
         friends: [],
         totalCount: 0
