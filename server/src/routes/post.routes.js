@@ -10,6 +10,7 @@ import {
     uploadPostResources
 } from "../controllers/post.controller.js";
 import {asyncHandler} from "../core/utils/core.utils.js";
+import {getCommentsByPostId, sendComment} from "../controllers/comment.controller.js";
 
 
 const postRouter = express.Router()
@@ -35,5 +36,9 @@ postRouter.delete('/:postId', asyncHandler(deletePost))
 postRouter.get('/:postId/likes', asyncHandler(getLikesPost))
 postRouter.post('/:postId/likes', asyncHandler(likePost))
 postRouter.delete('/:postId/likes', asyncHandler(unlikePost))
+
+// Comment handlers
+postRouter.get('/:postId/comments', asyncHandler(getCommentsByPostId))
+postRouter.post('/:postId/comments', asyncHandler(sendComment))
 
 export default postRouter

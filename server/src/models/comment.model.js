@@ -4,12 +4,11 @@ import {longTimestampsPlugin, removeVersionFieldPlugin} from "../database/plugin
 const CommentSchema = new Schema({
     text: {
         type: String,
-        required: true,
     },
     images: [
         {
             type: Schema.Types.ObjectId,
-            ref: 'Image'
+            ref: 'ResourceStorage'
         }
     ],
     user: {
@@ -36,11 +35,25 @@ const CommentSchema = new Schema({
     {
         timestamps: true
     }
-);
+)
+export const requiredPopulatedComment = [
+    {
+        path: "images",
+        select: "url"
+    },
+    {
+        path: "user",
+        select: "firstName lastName avatar username",
+        populate: [
+            {
+                path: "avatar",
+                select: "url"
+            }
+        ]
+    }
+]
 CommentSchema.plugin(longTimestampsPlugin)
 CommentSchema.plugin(removeVersionFieldPlugin)
 const Comment = mongoose.model('Comment', CommentSchema);
 
-module.exports = {
-    Comment
-};
+export default Comment

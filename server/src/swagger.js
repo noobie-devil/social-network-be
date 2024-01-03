@@ -1381,6 +1381,123 @@
 /**
  *  @swagger
  *  tags:
+ *      name: Comment
+ *      description: The Comment Post Handler API
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}/comments:
+ *  get:
+ *    summary: Get post's comments
+ *    tags: [Comment]
+ *    description: ''
+ *    parameters:
+ *      - name: postId
+ *        in: path
+ *        description: post id
+ *        required: true
+ *        schema:
+ *          type: string
+ *      - name: page
+ *        in: query
+ *        description: The number of items to skip before starting to collect the result set
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *      - name: limit
+ *        in: query
+ *        description: The number of items to return.
+ *        required: false
+ *        schema:
+ *          type: integer
+ *          minimum: 1
+ *    responses:
+ *      200:
+ *          description: Successful operation
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ * @swagger
+ * /api/v1/posts/{postId}/comments:
+ *  post:
+ *    summary: Comment to the post
+ *    tags: [Comment]
+ *    description: Comment to the post
+ *    parameters:
+ *     - name: postId
+ *       in: path
+ *       description: post id
+ *       required: true
+ *       schema:
+ *          type: string
+ *    requestBody:
+ *      required: true
+ *      content:
+ *          application/json:
+ *              schema:
+ *                  type: object
+ *                  properties:
+ *                      text:
+ *                          type: string
+ *                      images:
+ *                          type: array
+ *                          items:
+ *                              type: string
+ *    responses:
+ *      200:
+ *          description: Created successfully
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          message:
+ *                              type: string
+ *                          status:
+ *                              type: integer
+ *                          data:
+ *                              type: object
+ *      400:
+ *          description: Invalid input
+ *      401:
+ *          description: Invalid credentials
+ *      403:
+ *          description: Forbidden error
+
+ *      409:
+ *          description: Validation error
+ *      500:
+ *          description: Internal error. Maybe unexpected error
+ *    security:
+ *      - bearerAuth: []
+ */
+
+/**
+ *  @swagger
+ *  tags:
  *      name: Client Search
  *      description: The Search API For Users At Client
  */

@@ -511,6 +511,9 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
             if (request.sender.details.enrollmentYear) {
                 uniqueEnrollmentYearIds.add(request.sender.details.enrollmentYear)
             }
+            if(request.sender.details.registeredMajor) {
+                uniqueMajorIds.add(request.sender.detail.registeredMajor)
+            }
         })
         uniqueMajorIds = Array.from(uniqueMajorIds)
         uniqueFacultyIds = Array.from(uniqueFacultyIds)
@@ -561,6 +564,14 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                     request.sender.details.enrollmentYear = enrollmentYears[enrollmentYearId]
                 } else {
                     request.sender.details.enrollmentYear = {}
+                }
+            }
+            if(requeset.sender.details.registeredMajor) {
+                const registeredMajorId = request.sender.details.registeredMajor.toString()
+                if(majors[registeredMajorId]) {
+                    request.sender.details.registeredMajor = majors[registeredMajorId]
+                } else {
+                    request.sender.details.registeredMajor = {}
                 }
             }
             return request

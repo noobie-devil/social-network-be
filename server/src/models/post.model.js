@@ -28,6 +28,10 @@ const PostSchema = new Schema(
             type: Number,
             default: 0
         },
+        commentCounts: {
+            type: Number,
+            default: 0
+        },
         // likes: [
         //     {
         //         type: Schema.Types.ObjectId,
