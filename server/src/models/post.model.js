@@ -74,28 +74,28 @@ export const requiredPopulatedObject = [
           }
       ]
     },
-    {
-        path: "likes",
-        select: "userType user userPage -_id",
-        populate: [
-            {
-                path: "user",
-                select: "username avatar email",
-                populate: {
-                    path: "avatar",
-                    select: "url -_id"
-                }
-            },
-            {
-                path: "userPage",
-                select: "pageName avatar",
-                populate: {
-                    path: "avatar",
-                    select: "url -_id"
-                }
-            },
-        ]
-    },
+    // {
+    //     path: "likes",
+    //     select: "userType user userPage -_id",
+    //     populate: [
+    //         {
+    //             path: "user",
+    //             select: "username avatar email",
+    //             populate: {
+    //                 path: "avatar",
+    //                 select: "url -_id"
+    //             }
+    //         },
+    //         {
+    //             path: "userPage",
+    //             select: "pageName avatar",
+    //             populate: {
+    //                 path: "avatar",
+    //                 select: "url -_id"
+    //             }
+    //         },
+    //     ]
+    // },
     {
         path: "postResources",
         select: "url resourceType"
