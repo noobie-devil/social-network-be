@@ -333,6 +333,9 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
         if (user.details.enrollmentYear) {
             uniqueEnrollmentYearIds.add(user.details.enrollmentYear)
         }
+        if (user.details.registeredMajor) {
+            uniqueMajorIds.add(user.details.registeredMajor)
+        }
     })
     uniqueMajorIds = Array.from(uniqueMajorIds)
     uniqueFacultyIds = Array.from(uniqueFacultyIds)
@@ -387,6 +390,14 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
                 user.details.enrollmentYear = enrollmentYears[enrollmentYearId]
             } else {
                 user.details.enrollmentYear = {}
+            }
+        }
+        if (user.details.registeredMajor) {
+            const majorId = user.details.registeredMajor.toString()
+            if (majors[majorId]) {
+                user.details.registeredMajor = majors[majorId]
+            } else {
+                user.details.registeredMajor = {}
             }
         }
         return {userId: user._id, user, friendState}

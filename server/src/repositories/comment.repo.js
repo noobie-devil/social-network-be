@@ -13,7 +13,7 @@ const sendComment = async (user, payload) => {
     session.startTransaction()
     try {
         let sentComment = new Comment(payload)
-        await sentComment.save({session})
+        sentComment = await sentComment.save({session})
             .then(async value => {
                 await value.populate(requiredPopulatedComment)
                 const valueObject = value.toObject()
@@ -26,6 +26,7 @@ const sendComment = async (user, payload) => {
                     valueObject.userId = valueObject.user._id
                 }
                 delete valueObject.user
+                console.log(valueObject)
                 return valueObject
             })
         post.commentCounts += 1
