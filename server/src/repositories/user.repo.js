@@ -566,7 +566,7 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                     request.sender.details.enrollmentYear = {}
                 }
             }
-            if(requeset.sender.details.registeredMajor) {
+            if(request.sender.details.registeredMajor) {
                 const registeredMajorId = request.sender.details.registeredMajor.toString()
                 if(majors[registeredMajorId]) {
                     request.sender.details.registeredMajor = majors[registeredMajorId]

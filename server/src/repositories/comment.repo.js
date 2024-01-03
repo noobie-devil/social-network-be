@@ -20,8 +20,8 @@ const sendComment = async (user, payload) => {
                 if(valueObject.user) {
                     valueObject.fullName = valueObject.user.firstName + " " + valueObject.user.lastName
                     valueObject.username = valueObject.user.username
-                    if (valueObject.avatar) {
-                        valueObject.avatar = valueObject.avatar.url
+                    if (valueObject.user.avatar) {
+                        valueObject.avatar = valueObject.user.avatar.url
                     }
                     valueObject.userId = valueObject.user._id
                 }
@@ -52,9 +52,24 @@ const getCommentsByPostId = async ({postId, page = 1, limit = 10}) => {
         .skip(skip)
         .limit(limit)
 
+    const flattenedComments = comments.map(comment => {
+        const commentObject = comment.toObject();
+        if (commentObject.user) {
+            commentObject.fullName = commentObject.user.firstName + " " + commentObject.user.lastName
+            commentObject.username = commentObject.user.username
+            if (commentObject.user.avatar) {
+                commentObject.avatar = commentObject.user.avatar.url
+            }
+            commentObject.userId = commentObject.user._id
+            delete commentObject.user
+        }
+        return commentObject;
+    });
+
+
     const totalCount = await Comment.countDocuments({post: postId})
     return {
-        comments,
+        comments: flattenedComments,
         totalCount
     }
 }
