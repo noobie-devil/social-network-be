@@ -512,7 +512,7 @@ const getFriendRequests = async ({userId, search = "", limit = 20, page = 1, sel
                 uniqueEnrollmentYearIds.add(request.sender.details.enrollmentYear)
             }
             if(request.sender.details.registeredMajor) {
-                uniqueMajorIds.add(request.sender.detail.registeredMajor)
+                uniqueMajorIds.add(request.sender.details.registeredMajor)
             }
         })
         uniqueMajorIds = Array.from(uniqueMajorIds)
