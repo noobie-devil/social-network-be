@@ -26,7 +26,7 @@ const sendComment = async (user, payload) => {
                     valueObject.userId = valueObject.user._id
                 }
                 delete valueObject.user
-                return value
+                return valueObject
             })
         post.commentCounts += 1
         await post.save({session, new: true})
