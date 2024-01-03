@@ -389,7 +389,7 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
                 user.details.enrollmentYear = {}
             }
         }
-        return {user, friendState}
+        return {userId: user._id, user, friendState}
     })
     const count = await User.countDocuments(filter)
     return {
