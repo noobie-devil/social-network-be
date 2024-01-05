@@ -310,11 +310,10 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
     const friendshipMap = {}
     for (const friendshipState of friendshipUserStates) {
         let friendId
-        console.log(userId)
         if (friendshipState.sender !== userId) {
-            friendId = friendshipState.receiver.toString()
-        } else if (friendshipState.receiver !== userId) {
             friendId = friendshipState.sender.toString()
+        } else if (friendshipState.receiver !== userId) {
+            friendId = friendshipState.receiver.toString()
         }
         if (friendId) {
             friendshipMap[friendId] = friendshipState.status
