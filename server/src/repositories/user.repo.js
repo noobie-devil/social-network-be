@@ -310,15 +310,22 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
     const friendshipMap = {}
     for (const friendshipState of friendshipUserStates) {
         let friendId
+        let isSender = false
         if (friendshipState.sender !== userId) {
             friendId = friendshipState.sender.toString()
+            isSender = true
         } else if (friendshipState.receiver !== userId) {
             friendId = friendshipState.receiver.toString()
         }
         if (friendId) {
-            friendshipMap[friendId] = friendshipState.status
+            // friendshipMap[friendId] = friendshipState.status
+            friendshipMap[friendId] = {
+                status: friendshipState.status,
+                isSender
+            }
         }
     }
+    console.log(friendshipMap)
     let uniqueMajorIds = new Set()
     let uniqueFacultyIds = new Set()
     let uniqueEnrollmentYearIds = new Set()
@@ -365,8 +372,10 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
     }, {})
     users = users.map(user => {
         let friendState = ""
+        let isSender = false
         if (friendshipMap.hasOwnProperty(user._id.toString())) {
-            friendState = friendshipMap[user._id.toString()]
+            friendState = friendshipMap[user._id.toString()].status
+            isSender = friendshipMap[user._id.toString()].isSender
         }
         if (user.details.major) {
             const majorId = user.details.major.toString()
@@ -400,7 +409,7 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
                 user.details.registeredMajor = {}
             }
         }
-        return {userId: user._id, user, friendState}
+        return {userId: user._id, user, friendState, isSender}
     })
     const count = await User.countDocuments(filter)
     return {
