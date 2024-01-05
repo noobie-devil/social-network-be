@@ -291,7 +291,7 @@ const getUserPosts = async ({currentUser, userId, page = 1, limit = 10}) => {
                 $or: query
             }
         },
-        { $sort: { updatedAt: -1} },
+        { $sort: { createdAt: -1} },
         { $skip: parseInt(skip, 10), },
         { $limit: parseInt(limit, 10), },
         {
@@ -694,7 +694,7 @@ const getFeedPosts = async({user, page = 1, limit = 10}) => {
                 ]
             }
         },
-        { $sort: { updatedAt: -1} },
+        { $sort: { createdAt: -1} },
         { $skip: parseInt(skip, 10), },
         { $limit: parseInt(limit, 10), },
         {
