@@ -310,10 +310,11 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
     const friendshipMap = {}
     for (const friendshipState of friendshipUserStates) {
         let friendId
-        if (friendshipState.sender.toString() !== userId) {
-            friendId = friendshipState.sender.toString()
-        } else if (friendshipState.receiver.toString() !== userId) {
+        console.log(userId)
+        if (friendshipState.sender !== userId) {
             friendId = friendshipState.receiver.toString()
+        } else if (friendshipState.receiver !== userId) {
+            friendId = friendshipState.sender.toString()
         }
         if (friendId) {
             friendshipMap[friendId] = friendshipState.status
@@ -365,8 +366,8 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
     }, {})
     users = users.map(user => {
         let friendState = ""
-        if (friendshipMap.hasOwnProperty(user._id)) {
-            friendState = friendshipMap[user._id]
+        if (friendshipMap.hasOwnProperty(user._id.toString())) {
+            friendState = friendshipMap[user._id.toString()]
         }
         if (user.details.major) {
             const majorId = user.details.major.toString()
