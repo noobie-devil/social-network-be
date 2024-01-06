@@ -56,12 +56,15 @@ const sendFriendRequest = async ({senderId, receiverId}) => {
         $or: [{sender: senderId, receiver: receiverId}, {sender: receiverId, receiver: senderId}]
     });
     if (existingFriendship) {
+        console.log(existingFriendship)
         if (existingFriendship.status === 'Rejected') {
             existingFriendship.status = "Pending"
             await existingFriendship.save()
             return "Send request success";
+        } else {
+            console.log("fail")
+            throw new BadRequestError("Friendships existed")
         }
-        throw new BadRequestError("Friendships existed")
     }
 
     const newFriendship = new Friendship({
@@ -307,16 +310,21 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
             {receiver: userId, status: {$in: [FriendState.PENDING, FriendState.ACCEPTED]}, sender: {$in: userIds}}
         ]
     })
+    console.log(friendshipUserStates)
     const friendshipMap = {}
     for (const friendshipState of friendshipUserStates) {
         let friendId
         let isSender = false
-        if (friendshipState.sender !== userId) {
+        console.log(friendshipState)
+        if (friendshipState.sender.toString() !== userId.toString()) {
             friendId = friendshipState.sender.toString()
             isSender = true
-        } else if (friendshipState.receiver !== userId) {
+        } else if (friendshipState.receiver.toString() !== userId.toString()) {
             friendId = friendshipState.receiver.toString()
+        } else {
+            // friendshipMap[]
         }
+        console.log(friendId)
         if (friendId) {
             // friendshipMap[friendId] = friendshipState.status
             friendshipMap[friendId] = {
@@ -376,7 +384,11 @@ const findUsers = async ({userId, search = "", limit = 20, page = 1, select = []
         if (friendshipMap.hasOwnProperty(user._id.toString())) {
             friendState = friendshipMap[user._id.toString()].status
             isSender = friendshipMap[user._id.toString()].isSender
+            console.log(user._id.toString())
+            console.log("a: " + friendshipMap[user._id.toString()].status)
+            console.log("a: " + friendshipMap[user._id.toString()].isSender)
         }
+
         if (user.details.major) {
             const majorId = user.details.major.toString()
             if (majors[majorId]) {
